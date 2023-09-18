@@ -2,7 +2,7 @@ import cv2
 import cv2 as cv
 import numpy as np
 from djitellopy import tello
-import KeyPressModule as kp
+from maturaprojekt.Resources import KeyPressModule as kp
 from time import sleep
 
 height = 480
