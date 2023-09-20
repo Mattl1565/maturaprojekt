@@ -203,7 +203,8 @@ def realTime():
     cv2.destroyAllWindows()
 
 
-image_file = 'vehicle classification-image02.png'
+image_file = 'C:\\Users\\karim\\OneDrive - HTL Braunau\\MaturaProjekt\\GitVersionControllMaturaProjekt\\maturaprojekt\\Resources\\ParkinglotPicture.png'
+
 def from_static_image(image):
     img = cv2.imread(image)
 
