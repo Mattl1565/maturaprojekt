@@ -4,7 +4,7 @@ import cv2
 haar_cascade = 'Resources/cars.xml'
 
 # To use a video file as input
-video = 'Resources/resized_video.avi'
+video = 'Resources/HighwayVideo.avi'
 cap = cv2.VideoCapture(video)
 
 car_cascade = cv2.CascadeClassifier(haar_cascade)
