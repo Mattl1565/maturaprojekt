@@ -1,11 +1,11 @@
 import cv2
 
 # Load the cascade classifier for car detection
-cascade_file = 'Resources/cars.xml'
+cascade_file = '../Resources/cars.xml'
 car_cascade = cv2.CascadeClassifier(cascade_file)
 
 # Load the image
-image_path = 'Resources/Images/ParkinglotPicture.jpg'
+image_path = '../Resources/Images/ParkinglotPicture.jpg'
 image = cv2.imread(image_path)
 image = cv2.resize(image, (640, 480))
 # convert to gray scale of each frames

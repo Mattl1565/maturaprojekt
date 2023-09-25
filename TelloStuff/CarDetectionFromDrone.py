@@ -16,7 +16,7 @@ print(me.get_battery())
 
 me.streamon()
 
-cascade_file = 'Resources/cars.xml'
+cascade_file = '../Resources/cars.xml'
 car_cascade = cv.CascadeClassifier(cascade_file)
 
 
