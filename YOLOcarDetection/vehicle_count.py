@@ -148,6 +148,16 @@ def postProcess(outputs,img):
     boxes_ids = tracker.update(detection)
     for box_id in boxes_ids:
         count_vehicle(box_id, img)
+# |
+# |
+# V
+#It takes two arguments: outputs, which is the output of the neural network, and img, which is an image on which the detected objects will be drawn.
+#It initializes some variables to store information about detected objects, such as their bounding boxes, class IDs, and confidence scores.
+#It iterates through the outputs to extract information about detected objects, including their class, confidence score, and bounding box coordinates.
+#It filters the detected objects based on their class ID and confidence score, keeping only those that meet certain criteria.
+#It applies Non-Maximum Suppression (NMS) to remove overlapping bounding boxes, keeping only the most confident ones.
+#It draws bounding boxes and labels on the input image to visualize the detected objects.
+#It updates a tracker with information about the detected objects and counts the number of vehicles.
 
 
 def realTime():
