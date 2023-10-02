@@ -2,20 +2,15 @@ from collections import defaultdict
 
 import cv2
 import numpy as np
-import pytube as pt
+
 from ultralytics import YOLO
 
 # Load the YOLOv8 model
-model = YOLO('Model/yolov8n.pt')
-
-yt_url = "https://www.youtube.com/watch?v=TE2tfavIo3E"
-yt = pt.YouTube(yt_url)
-
-# Get the highest resolution stream (you can choose a different stream if needed)
-stream = yt.streams.filter(adaptive=True, file_extension="mp4").first()
+model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-cap = cv2.VideoCapture(stream.url)
+video_path = '/maturaprojekt/Resources/Videos/cars_on_highway (1080p).mp4'
+cap = cv2.VideoCapture(video_path)
 
 # Store the track history
 track_history = defaultdict(lambda: [])
@@ -36,17 +31,17 @@ while cap.isOpened():
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
-        # # Plot the tracks
-        # for box, track_id in zip(boxes, track_ids):
-        #     x, y, w, h = box
-        #     track = track_history[track_id]
-        #     track.append((float(x), float(y)))  # x, y center point
-        #     if len(track) > 50:  # retain 90 tracks for 90 frames / length of the tail
-        #         track.pop(0)
-        #
-        #     # Draw the tracking lines
-        #     points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-        #     cv2.polylines(annotated_frame, [points], isClosed=False, color=(244, 210, 32), thickness=5)
+        # Plot the tracks
+        for box, track_id in zip(boxes, track_ids):
+            x, y, w, h = box
+            track = track_history[track_id]
+            track.append((float(x), float(y)))  # x, y center point
+            if len(track) > 30:  # retain 90 tracks for 90 frames / tracking lines length
+                track.pop(0)
+
+            # Draw the tracking lines
+            points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
+            cv2.polylines(annotated_frame, [points], isClosed=False, color=(230, 230, 230), thickness=10)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", annotated_frame)
