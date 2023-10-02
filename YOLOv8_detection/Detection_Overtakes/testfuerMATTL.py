@@ -16,7 +16,7 @@ cap = cv2.VideoCapture(video_path)
 
 
 
-print(Overtake_Detection.are_cars_overtaking(1,4,2,2,1,3,1,2,1))
+print(Overtake_Detection.are_cars_overtaking(100, 600, 110, 800, 90, 660, 70, 800,40))
 
 
 
