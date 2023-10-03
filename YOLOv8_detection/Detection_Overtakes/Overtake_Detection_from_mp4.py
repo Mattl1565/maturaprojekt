@@ -17,7 +17,12 @@ cap = cv2.VideoCapture(video_path)
 # Store the track history
 track_history = defaultdict(lambda: [])
 
-carOrder = []
+# initialize the lists for the cars
+AllCars = []
+VisibleCars = []
+Cars_driving_towards = []
+Cars_driving_away = []
+
 
 #define a scaling factor
 scaling_factor = 1
@@ -31,25 +36,9 @@ while cap.isOpened():
         # Get the current frame's timestamp
         current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)  # Get timestamp in milliseconds
         current_time_sec = current_time_ms / 1000.0  # Convert to seconds
-
-        #set coords
-
-        # if current_time_sec % 0.5 == 0:
-        #     coords.append()
-
-        if current_time_sec == 0 or current_time_sec < 2:
-            time0 = current_time_sec
-            time1 = 0
-        else:
-            time0 = current_time_sec - 2
-            time1 = time0 + 2
-        # print("****************************************************************")
-        # print("time0: " + str(time0))
-        # print("time1: " + str(time1))
-        # print("****************************************************************")
-        # print("----------------------------------------------------------------")
-        # print("current_time_sec: " + str(current_time_sec))
-        # print("----------------------------------------------------------------")
+        print("**********************************************")
+        print("current_time_sec: " + str(current_time_sec)) # Print timestamp
+        print("**********************************************")
 
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
         results = model.track(frame, persist=True)
@@ -61,26 +50,36 @@ while cap.isOpened():
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id.int().cpu().tolist()
 
+        # - new car gets detected -> add car.ID + coords to AllCars (list)      ✓
+        # - make sure to save the visible cars in a list (VisibleCars)
         for box, track_id in zip(boxes, track_ids):
-            if (not(func.track_id_in_list(track_id, carOrder))):
-                x, y, w, h = box
-                x = x.numpy()
-                y = y.numpy()
-                print("x: " + str(x))
-                print("y: " + str(y))
-                tempCar = Car(x, y, track_id)
-                carOrder.append(tempCar)
-            else:
-                for car in carOrder:
+
+            # HIER MACHT KARIM WEITER
+            # if(func.track_id_in_list(track_id, track_ids) and func.track_id_in_list(track_id, AllCars)):
+            #     for car in AllCars:
+            #         if car.getID() == track_id:
+            #
+
+
+            if(func.track_id_in_list(track_id, AllCars)):
+                for car in AllCars:
                     if car.getID() == track_id:
                         x, y, w, h = box
                         x = x.numpy()
                         y = y.numpy()
                         car.setX(x)
                         car.setY(y)
+            else:
+                x, y, w, h = box
+                x = x.numpy()
+                y = y.numpy()
+                tempCar = Car(x, y, track_id)
+                AllCars.append(tempCar)
+
+
 
         print("----------------------------------------------------------------")
-        for car in carOrder:
+        for car in AllCars:
             print(car)
         print("----------------------------------------------------------------")
 
@@ -106,16 +105,11 @@ while cap.isOpened():
             points = np.array(track).astype(np.int32).reshape((-1, 1, 2))
             cv2.polylines(small_annotated_frame, [points], isClosed=False, color=(230, 230, 230),thickness=5)  # Adjust thickness if needed
 
-        for box, track_id in zip(boxes, track_ids):
-            x, y, w, h = box
-            print("x: " + str(x) + " y: " + str(y) + " w: " + str(w) + " h: " + str(h))
-            print("track_id: " + str(track_id))
-
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
         # Resize the frame
-        smaller_annotated_frame = cv2.resize(annotated_frame, (0, 0), fx=0.6, fy=0.6)
+        smaller_annotated_frame = cv2.resize(annotated_frame, (0, 0), fx=0.65, fy=0.65)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", smaller_annotated_frame)
