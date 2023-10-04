@@ -18,8 +18,10 @@ cap = cv2.VideoCapture(video_path)
 track_history = defaultdict(lambda: [])
 
 # initialize the lists for the cars
+CarDict = {}
 AllCars = []
 VisibleCars = []
+
 Cars_driving_towards = []
 Cars_driving_away = []
 
@@ -50,36 +52,40 @@ while cap.isOpened():
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id.int().cpu().tolist()
 
-        # - new car gets detected -> add car.ID + coords to AllCars (list)      ✓
-        # - make sure to save the visible cars in a list (VisibleCars)
+        #  - new car gets detected -> add car.ID + coords to AllCars (list)      ✓
+        #  - make sure to save the visible cars in a list (VisibleCars)
+        #  - Create a list to store currently visible cars
+        #  - sort the visible cars by the y coordinate
+
+        # Iterate through detected boxes and track IDs
         for box, track_id in zip(boxes, track_ids):
-
-            # HIER MACHT KARIM WEITER
-            # if(func.track_id_in_list(track_id, track_ids) and func.track_id_in_list(track_id, AllCars)):
-            #     for car in AllCars:
-            #         if car.getID() == track_id:
-            #
-
-
-            if(func.track_id_in_list(track_id, AllCars)):
-                for car in AllCars:
-                    if car.getID() == track_id:
-                        x, y, w, h = box
-                        x = x.numpy()
-                        y = y.numpy()
-                        car.setX(x)
-                        car.setY(y)
+            # Check if the track_id is already in the CarDict
+            if track_id in CarDict:
+                car = CarDict[track_id]
+                x, y, w, h = box
+                x = x.numpy()
+                y = y.numpy()
+                car.setX(x)
+                car.setY(y)
             else:
                 x, y, w, h = box
                 x = x.numpy()
                 y = y.numpy()
                 tempCar = Car(x, y, track_id)
                 AllCars.append(tempCar)
+                CarDict[track_id] = tempCar
+
+        # Update VisibleCars list with visible cars
+        VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+
+        # Sort VisibleCars by y-coordinate
+        VisibleCars.sort(key=lambda car: car.getY())
 
 
 
+        # Print the currently visible cars
         print("----------------------------------------------------------------")
-        for car in AllCars:
+        for car in VisibleCars:
             print(car)
         print("----------------------------------------------------------------")
 
