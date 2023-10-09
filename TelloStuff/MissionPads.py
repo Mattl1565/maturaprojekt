@@ -10,20 +10,22 @@ me.connect()
 print("Batteriestand: ")
 print(me.get_battery())
 
-me.streamon()
+me.takeoff()
+
+#me.streamon()
 
 #enable mission pads
 me.enable_mission_pads()
 me.set_mission_pad_detection_direction(0)
 
+
+
+#print("Mission-Pad-ID: ")
+#print(me.get_mission_pad_id())
+
 #me.takeoff()
-
-print("Mission-Pad-ID: ")
-print(me.get_mission_pad_id())
-
-me.takeoff()
-me.move_down(20)
-me.move_left(50)
+#me.move_down(20)
+#me.move_left(50)
 
 
 print("Mission-Pad-ID: ")
