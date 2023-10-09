@@ -2,22 +2,26 @@ import telnetlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from datetime import datetime
+from djitellopy import tello
 
+me = tello.Tello()
+me.connect()
+me.streamon()
 battery_history = []
 
 
 def get_battery_level():
-    try:
-        input_integer = int(input("Bitte geben Sie die Batterieladung des Tello-Drohne ein (0-100): "))
-        if 0 <= input_integer <= 100:
-            return input_integer
-        else:
-            print("Ungültige Eingabe. Die Batterieladung muss zwischen 0 und 100 liegen.")
-            return None
-    except ValueError:
-        print("Ungültige Eingabe. Bitte geben Sie eine Ganzzahl ein.")
-        return None
-
+    #try:
+    #    input_integer = int(input("Bitte geben Sie die Batterieladung des Tello-Drohne ein (0-100): "))
+    #    if 0 <= input_integer <= 100:
+    #        return input_integer
+    #    else:
+    #        print("Ungültige Eingabe. Die Batterieladung muss zwischen 0 und 100 liegen.")
+    #        return None
+    #except ValueError:
+    #    print("Ungültige Eingabe. Bitte geben Sie eine Ganzzahl ein.")
+    #    return None
+    return me.get_battery()
 
 def get_color(battery_level):
     if battery_level >= 50:
@@ -68,3 +72,4 @@ fig, ax = plt.subplots()
 ani = animation.FuncAnimation(fig, update_battery_level, interval=1000)
 plt.tight_layout()
 plt.show()
+
