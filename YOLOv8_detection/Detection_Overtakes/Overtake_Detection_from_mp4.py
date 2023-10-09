@@ -11,13 +11,20 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\cars_on_highway (1080p).mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
 track_history = defaultdict(lambda: [])
 
-carOrder = []
+# initialize the lists for the cars
+CarDict = {}
+AllCars = []
+VisibleCars = []
+
+overtakes = 0
+help = 0
+
 
 #define a scaling factor
 scaling_factor = 1
@@ -31,25 +38,9 @@ while cap.isOpened():
         # Get the current frame's timestamp
         current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)  # Get timestamp in milliseconds
         current_time_sec = current_time_ms / 1000.0  # Convert to seconds
-
-        #set coords
-
-        # if current_time_sec % 0.5 == 0:
-        #     coords.append()
-
-        if current_time_sec == 0 or current_time_sec < 2:
-            time0 = current_time_sec
-            time1 = 0
-        else:
-            time0 = current_time_sec - 2
-            time1 = time0 + 2
-        # print("****************************************************************")
-        # print("time0: " + str(time0))
-        # print("time1: " + str(time1))
-        # print("****************************************************************")
-        # print("----------------------------------------------------------------")
-        # print("current_time_sec: " + str(current_time_sec))
-        # print("----------------------------------------------------------------")
+        print("**********************************************")
+        print("current_time_sec: " + str(current_time_sec)) # Print timestamp
+        print("**********************************************")
 
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
         results = model.track(frame, persist=True)
@@ -61,27 +52,54 @@ while cap.isOpened():
         boxes = results[0].boxes.xywh.cpu()
         track_ids = results[0].boxes.id.int().cpu().tolist()
 
+        #  - new car gets detected -> add car.ID + coords to AllCars (list)      ✓
+        #  - make sure to save the visible cars in a list (VisibleCars)
+        #  - Create a list to store currently visible cars
+        #  - sort the visible cars by the y coordinate
+
+        # Iterate through detected boxes and track IDs
         for box, track_id in zip(boxes, track_ids):
-            if (not(func.track_id_in_list(track_id, carOrder))):
+            # Check if the track_id is already in the CarDict
+            if track_id in CarDict:
+                car = CarDict[track_id]
                 x, y, w, h = box
                 x = x.numpy()
                 y = y.numpy()
-                print("x: " + str(x))
-                print("y: " + str(y))
-                tempCar = Car(x, y, track_id)
-                carOrder.append(tempCar)
+                car.setX(x)
+                car.setY(y)
             else:
-                for car in carOrder:
-                    if car.getID() == track_id:
-                        x, y, w, h = box
-                        x = x.numpy()
-                        y = y.numpy()
-                        car.setX(x)
-                        car.setY(y)
+                x, y, w, h = box
+                x = x.numpy()
+                y = y.numpy()
+                tempCar = Car(x, y, track_id)
+                AllCars.append(tempCar)
+                CarDict[track_id] = tempCar
 
+
+        if help == 0:
+            # Update VisibleCars list with visible cars
+            VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+            # Sort Visible Cars by y-coordinate
+            VisibleCars.sort(key=lambda car: car.getY(), reverse=True)
+            help = 1
+
+        #Check if a Car took over
+        if not func.isSorted(VisibleCars):
+            overtakes = overtakes + 1
+
+        # Update VisibleCars list with visible cars
+        VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+        
+        # Sort VisibleCars by y-coordinate
+        VisibleCars.sort(key=lambda car: car.getY(), reverse=True)
+
+
+        # Print the currently visible cars
         print("----------------------------------------------------------------")
-        for car in carOrder:
+        for car in VisibleCars:
             print(car)
+        print("----------------------------------------------------------------")
+        print("Overtakes: " + str(overtakes))
         print("----------------------------------------------------------------")
 
 
@@ -106,16 +124,11 @@ while cap.isOpened():
             points = np.array(track).astype(np.int32).reshape((-1, 1, 2))
             cv2.polylines(small_annotated_frame, [points], isClosed=False, color=(230, 230, 230),thickness=5)  # Adjust thickness if needed
 
-        for box, track_id in zip(boxes, track_ids):
-            x, y, w, h = box
-            print("x: " + str(x) + " y: " + str(y) + " w: " + str(w) + " h: " + str(h))
-            print("track_id: " + str(track_id))
-
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
         # Resize the frame
-        smaller_annotated_frame = cv2.resize(annotated_frame, (0, 0), fx=0.6, fy=0.6)
+        smaller_annotated_frame = cv2.resize(annotated_frame, (0, 0), fx=0.65, fy=0.65)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", smaller_annotated_frame)

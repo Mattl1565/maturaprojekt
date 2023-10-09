@@ -1,0 +1,9 @@
+1) Detecting the order of the cars + overtaking
+- new car gets detected -> add car.ID + coords to AllCars (list)                                    ✓
+- make sure to save the visible cars in a list (VisibleCars)
+- VisibleCars gets sorted by car.Y axes, because we look at the cars from the front
+- if the AllCars gets changed, the cars have to be repositioned and a overtake has been detected
+- if a car drives out of the screen, it gets removed from the AllCars list
+
+2) Determine wheter the cars drive away from us or towards us
+- FOR MATTL TO THINK ABOUT: IS THIS EVEN NECESSARY? IF YES WHY? IF NO WHY NOT? my brain couldnt work it out yet
