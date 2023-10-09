@@ -1,9 +1,9 @@
 class Car:
-    def __init__(self, x, y, id, direction):
+    def __init__(self, x, y, id):
         self.x = x
         self.y = y
         self.id = id
-        self.direction = direction
+        self.direction = 2
 
     def getX(self):
         return self.x
@@ -13,6 +13,9 @@ class Car:
 
     def getID(self):
         return self.id
+
+    def getDirection(self):
+        return self.direction
 
     def setX(self, x):
         self.x = x
@@ -26,8 +29,12 @@ class Car:
     def setDirection(self, direction):
         self.direction = direction
 
-    def getDirection(self, direction):
-        self.direction = direction
+
 
     def __str__(self):
-        return "x: " + str(self.x) + " y: " + str(self.y) + " id: " + str(self.id) + "direction: " + str(self.direction)
+        if(self.direction == 0):
+            return "x: " + str(self.x) + " y: " + str(self.y) + " id: " + str(self.id) + " direction: " + "down"
+        elif(self.direction == 1):
+            return "x: " + str(self.x) + " y: " + str(self.y) + " id: " + str(self.id) + " direction: " + "up"
+        else:
+            return "x: " + str(self.x) + " y: " + str(self.y) + " id: " + str(self.id) + " direction: " + "unknown"

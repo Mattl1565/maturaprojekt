@@ -12,6 +12,18 @@ def is_car_visible(car, track_ids):
 
 def isSorted(list_cars):
     for i in range(len(list_cars) - 1):
+        if list_cars[i].getY() > list_cars[i + 1].getY():
+            return False
+    return True
+
+def isSortedUp(list_cars):
+    for i in range(len(list_cars) - 1):
+        if list_cars[i].getY() > list_cars[i + 1].getY():
+            return False
+    return True
+
+def isSortedDown(list_cars):
+    for i in range(len(list_cars) - 1):
         if list_cars[i].getY() < list_cars[i + 1].getY():
             return False
     return True
