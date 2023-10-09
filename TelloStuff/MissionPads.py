@@ -21,16 +21,16 @@ me.set_mission_pad_detection_direction(0)
 print("Mission-Pad-ID: ")
 print(me.get_mission_pad_id())
 
-if(me.get_mission_pad_id() == 3):
-    me.takeoff()
-    me.move_down(20)
-    me.move_left(50)
+me.takeoff()
+me.move_down(20)
+me.move_left(50)
 
 
 print("Mission-Pad-ID: ")
 print(me.get_mission_pad_id())
 
 me.land()
+
 # me.go_xyz_speed_mid(-100, 0, 0, 50, 5)
 # me.go_xyz_speed_mid(100, 0, 0, 50, 2)
 
