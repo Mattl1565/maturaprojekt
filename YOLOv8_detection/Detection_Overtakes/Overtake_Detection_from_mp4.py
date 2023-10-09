@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\cars_on_highway (1080p).mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -22,8 +22,8 @@ CarDict = {}
 AllCars = []
 VisibleCars = []
 
-Cars_driving_towards = []
-Cars_driving_away = []
+overtakes = 0
+help = 0
 
 
 #define a scaling factor
@@ -75,18 +75,31 @@ while cap.isOpened():
                 AllCars.append(tempCar)
                 CarDict[track_id] = tempCar
 
+
+        if help == 0:
+            # Update VisibleCars list with visible cars
+            VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+            # Sort Visible Cars by y-coordinate
+            VisibleCars.sort(key=lambda car: car.getY(), reverse=True)
+            help = 1
+
+        #Check if a Car took over
+        if not func.isSorted(VisibleCars):
+            overtakes = overtakes + 1
+
         # Update VisibleCars list with visible cars
         VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
-
+        
         # Sort VisibleCars by y-coordinate
-        VisibleCars.sort(key=lambda car: car.getY())
-
+        VisibleCars.sort(key=lambda car: car.getY(), reverse=True)
 
 
         # Print the currently visible cars
         print("----------------------------------------------------------------")
         for car in VisibleCars:
             print(car)
+        print("----------------------------------------------------------------")
+        print("Overtakes: " + str(overtakes))
         print("----------------------------------------------------------------")
 
 
