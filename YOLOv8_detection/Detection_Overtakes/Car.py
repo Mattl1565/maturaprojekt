@@ -17,6 +17,14 @@ class Car:
     def getDirection(self):
         return self.direction
 
+    def getDirectionString(self):
+        if(self.direction == 0):
+            return "down"
+        elif(self.direction == 1):
+            return "up"
+        else:
+            return "unknown"
+
     def setX(self, x):
         self.x = x
 

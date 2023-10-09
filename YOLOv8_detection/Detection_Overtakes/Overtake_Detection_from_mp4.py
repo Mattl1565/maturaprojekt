@@ -140,7 +140,8 @@ while cap.isOpened():
         # Visualize the results on the frame
         annotated_frame = results[0].plot()
 
-        # Plot the scaled tracks
+        # Plot the scaled tracks and draw the tracking lines
+        # draw the Direction of the cars (up or down) at the bottom of the box (x,y,w,h) -> (x,y+h)
         for box, track_id in zip(boxes, track_ids):
             x, y, w, h = box
             track = track_history[track_id]
@@ -150,7 +151,13 @@ while cap.isOpened():
 
             # Draw the tracking lines
             points = np.array(track).astype(np.int32).reshape((-1, 1, 2))
-            cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 0, 255),thickness=4)  # Adjust thickness if needed
+            # cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 0, 255),thickness=4)  # Adjust thickness if needed
+
+            # Get the direction of the car
+            direction = func.get_direction(track_id, CarDict)
+            # Add the direction label at the bottom of the box
+            direction_label = f"Direction: {direction}"
+            cv2.putText(annotated_frame, direction_label, (int(x - (w/2)), int(y + (h/2) + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", annotated_frame)
