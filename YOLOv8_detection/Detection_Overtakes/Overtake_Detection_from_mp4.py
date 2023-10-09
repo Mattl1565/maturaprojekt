@@ -22,6 +22,9 @@ CarDict = {}
 AllCars = []
 VisibleCars = []
 
+#test for direction detection
+VisibleCarsBeforeUpdate = []
+
 overtakes = 0
 help = 0
 
@@ -87,12 +90,19 @@ while cap.isOpened():
         if not func.isSorted(VisibleCars):
             overtakes = overtakes + 1
 
+
+        VisibleCarsBeforeUpdate = VisibleCars
         # Update VisibleCars list with visible cars
         VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
-        
+
+        for car in VisibleCars:
+            if VisibleCars[car].getY() < VisibleCarsBeforeUpdate[car].getY():
+                VisibleCars[car].setDirection(1)
+            else:
+                VisibleCars[car].setDirection(0)
+
         # Sort VisibleCars by y-coordinate
         VisibleCars.sort(key=lambda car: car.getY(), reverse=True)
-
 
         # Print the currently visible cars
         print("----------------------------------------------------------------")
