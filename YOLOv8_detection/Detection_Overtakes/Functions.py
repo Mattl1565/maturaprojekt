@@ -24,3 +24,6 @@ def isSortedDown(list_cars):
 
 def get_direction(track_id, CarDict):
     return CarDict[track_id].getDirectionString()
+
+def getMean(list):
+    return sum(list) / len(list)

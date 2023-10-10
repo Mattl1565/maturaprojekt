@@ -6,12 +6,13 @@ from ultralytics import YOLO
 import time
 from Car import Car
 import Functions as func
+from YOLOv8_detection.Detection_Overtakes.CarData import CarData
 
 # Load the YOLOv8 model
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -23,6 +24,7 @@ AllCars = []
 VisibleCars = []
 VisibleCars_up = []
 VisibleCars_down = []
+last_five_y_values = {}
 
 #test for direction detection
 VisibleCarsBeforeUpdate = []
@@ -95,25 +97,23 @@ while cap.isOpened():
         if not func.isSortedUp(VisibleCars_up):
             overtakes_up = overtakes_up + 1
 
-        VisibleCarsBeforeUpdate = VisibleCars
+        VisibleCarsBeforeUpdate = CarData(VisibleCars)
+        VisibleCarsBeforeUpdate.update_mean_last_5(last_five_y_values)
+
         # Update VisibleCars list with visible cars
         VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+
 
         # Check if a car changed direction
         # if (visible cars vorher < visible cars nachher) -> auto fährt nach unten
         # if (visible cars vorher > visible cars nachher) -> auto fährt nach oben
-        if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
-            for i in range(len(VisibleCars)):
-                if VisibleCarsBeforeUpdate[i].getY() < VisibleCars[i].getY():
-                    VisibleCars[i].setDirection(1) # 1 = down
-                else:
-                    VisibleCars[i].setDirection(0) # 0 = up
-        else:
-            for i in range(len(VisibleCars)-1):
-                if VisibleCarsBeforeUpdate[i].getY() < VisibleCars[i].getY():
-                    VisibleCars[i].setDirection(1) # 1 = down
-                else:
-                    VisibleCars[i].setDirection(0) # 0 = up
+        #if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
+
+        for i in range(len(VisibleCars)):
+            if VisibleCarsBeforeUpdate[i].get_mean_last_5(Vis) < VisibleCars[i].getY() and VisibleCars[i].direction == 2:
+                VisibleCars[i].setDirection(1)  # 1 = down
+            elif VisibleCarsBeforeUpdate[i].getY() > VisibleCars[i].getY() and VisibleCars[i].direction == 2:
+                VisibleCars[i].setDirection(0)  # 0 = up
 
         # divide all the visible cars into _up and _down
         VisibleCars_up = [car for car in VisibleCars if car.getDirection() == 0]
