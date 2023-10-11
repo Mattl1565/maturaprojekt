@@ -73,14 +73,14 @@ while cap.isOpened():
                 x = x.numpy()
                 y = y.numpy()
                 car.setX(x)
-                y_arr = [None] * 1
+                y_arr = [1]
                 y_arr[0] = y
                 car.setY(y_arr)
             else:
                 x, y, w, h = box
                 x = x.numpy()
                 y = y.numpy()
-                y_arr = [None] * 1
+                y_arr = [1]
                 y_arr[0] = y
                 tempCar = Car(x, y_arr[0], track_id)
                 AllCars.append(tempCar)
@@ -111,10 +111,10 @@ while cap.isOpened():
         # if (visible cars vorher > visible cars nachher) -> auto fährt nach oben
         #if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
 
-        for i in range(len(VisibleCarsBeforeUpdate)):
-            if VisibleCarsBeforeUpdate[i].getMeanY() < VisibleCars[i].getMeanY():
+        for i in range(len(VisibleCars)):
+            if VisibleCars[i].detectDirection() == True:
                 VisibleCars[i].setDirection(1)  # 1 = down
-            elif VisibleCarsBeforeUpdate[i].getMeanY() > VisibleCars[i].getMeanY():
+            elif VisibleCars[i].detectDirection() == False:
                 VisibleCars[i].setDirection(0)  # 0 = up
 
         # divide all the visible cars into _up and _down
