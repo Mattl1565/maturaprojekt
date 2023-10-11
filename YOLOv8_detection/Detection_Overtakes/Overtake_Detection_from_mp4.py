@@ -24,7 +24,6 @@ AllCars = []
 VisibleCars = []
 VisibleCars_up = []
 VisibleCars_down = []
-last_five_y_values = {}
 
 #test for direction detection
 VisibleCarsBeforeUpdate = []
@@ -74,12 +73,16 @@ while cap.isOpened():
                 x = x.numpy()
                 y = y.numpy()
                 car.setX(x)
-                car.setY(y)
+                y_arr = [None] * 1
+                y_arr[0] = y
+                car.setY(y_arr)
             else:
                 x, y, w, h = box
                 x = x.numpy()
                 y = y.numpy()
-                tempCar = Car(x, y, track_id)
+                y_arr = [None] * 1
+                y_arr[0] = y
+                tempCar = Car(x, y_arr[0], track_id)
                 AllCars.append(tempCar)
                 CarDict[track_id] = tempCar
 
@@ -97,8 +100,7 @@ while cap.isOpened():
         if not func.isSortedUp(VisibleCars_up):
             overtakes_up = overtakes_up + 1
 
-        VisibleCarsBeforeUpdate = CarData(VisibleCars)
-        VisibleCarsBeforeUpdate.update_mean_last_5(last_five_y_values)
+        VisibleCarsBeforeUpdate = list(VisibleCars)
 
         # Update VisibleCars list with visible cars
         VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
@@ -109,10 +111,10 @@ while cap.isOpened():
         # if (visible cars vorher > visible cars nachher) -> auto fährt nach oben
         #if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
 
-        for i in range(len(VisibleCars)):
-            if VisibleCarsBeforeUpdate[i].get_mean_last_5(Vis) < VisibleCars[i].getY() and VisibleCars[i].direction == 2:
+        for i in range(len(VisibleCarsBeforeUpdate)):
+            if VisibleCarsBeforeUpdate[i].getMeanY() < VisibleCars[i].getMeanY():
                 VisibleCars[i].setDirection(1)  # 1 = down
-            elif VisibleCarsBeforeUpdate[i].getY() > VisibleCars[i].getY() and VisibleCars[i].direction == 2:
+            elif VisibleCarsBeforeUpdate[i].getMeanY() > VisibleCars[i].getMeanY():
                 VisibleCars[i].setDirection(0)  # 0 = up
 
         # divide all the visible cars into _up and _down
