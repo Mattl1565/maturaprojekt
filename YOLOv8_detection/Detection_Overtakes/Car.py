@@ -48,12 +48,6 @@ class Car:
         else:
             return 0
 
-    def detectDirection(self):
-        if(self.y[0] > self.y[len(self.y) - 1]):
-            return True
-        else:
-            return False
-
     def __str__(self):
         if(self.direction == 0):
             return "x: " + str(self.x) + " y: " + str(self.y) + " id: " + str(self.id) + " direction: " + "down"

@@ -6,13 +6,12 @@ from ultralytics import YOLO
 import time
 from Car import Car
 import Functions as func
-from YOLOv8_detection.Detection_Overtakes.CarData import CarData
 
 # Load the YOLOv8 model
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -112,9 +111,9 @@ while cap.isOpened():
         #if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
 
         for i in range(len(VisibleCars)):
-            if VisibleCars[i].detectDirection() == True:
+            if func.detectDirection(VisibleCars[i]) == True:
                 VisibleCars[i].setDirection(1)  # 1 = down
-            elif VisibleCars[i].detectDirection() == False:
+            elif func.detectDirection(VisibleCars[i]) == False:
                 VisibleCars[i].setDirection(0)  # 0 = up
 
         # divide all the visible cars into _up and _down
