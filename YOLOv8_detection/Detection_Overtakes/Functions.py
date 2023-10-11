@@ -24,3 +24,8 @@ def isSortedDown(list_cars):
 
 def get_direction(track_id, CarDict):
     return CarDict[track_id].getDirectionString()
+
+def get_direction(track_id, list_cars):
+    for car in list_cars:
+        if car.getID() == track_id:
+            return car.getDirectionString()
