@@ -1,5 +1,6 @@
 class Car:
     def __init__(self, x, y, id):
+        self.screenTime = 1
         self.y = []  # Initialize as an empty list
         self.x = x
         self.setY(y)  # Use setY method to add the initial y value
@@ -33,12 +34,16 @@ class Car:
         if len(self.y) > 5:
             self.y.pop(0)
         self.y.append(y)
+        self.screenTime = self.screenTime + 1
 
     def setID(self, id):
         self.id = id
 
     def setDirection(self, direction):
-        self.direction = direction
+        if(self.screenTime > 5):
+            self.direction = direction
+        else:
+            self.direction = 2
 
     def getMeanY(self):
         non_none_values = [value for value in self.y if value is not None]
