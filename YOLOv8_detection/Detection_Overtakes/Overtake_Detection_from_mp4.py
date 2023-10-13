@@ -144,6 +144,7 @@ while cap.isOpened():
         # Plot the scaled tracks and draw the tracking lines
         # draw the Direction of the cars (up or down) at the bottom of the box (x,y,w,h) -> (x,y+h)
         for box, track_id in zip(boxes, track_ids):
+
             x, y, w, h = box
             track = track_history[track_id]
             track.append((float(x), float(y)))  # x, y center point
@@ -159,6 +160,13 @@ while cap.isOpened():
             # Add the direction label at the bottom of the box
             direction_label = f"Direction: {direction}"
             cv2.putText(annotated_frame, direction_label, (int(x - (w/2)), int(y + (h/2) + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            i = i + 1
+            if(i < len(VisibleCars) - 1):
+                overtaking = VisibleCars[i].getOvertaking()
+            # Add the direction label at the bottom of the box
+                overtaking_label = f"Direction: {overtaking}"
+                cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 25)),
+                            cv2.FONT_ITALIC, 0.7, (0, 0, 255), 2)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", annotated_frame)

@@ -6,6 +6,7 @@ class Car:
         self.setY(y)  # Use setY method to add the initial y value
         self.id = id
         self.direction = 2
+        self.overtaking = False
 
     def getX(self):
         return self.x
@@ -26,6 +27,12 @@ class Car:
             return "up"
         else:
             return "unknown"
+
+    def getOvertaking(self):
+        return self.overtaking
+
+    def setOvertaking(self, overtaking):
+        self.overtaking = overtaking
 
     def setX(self, x):
         self.x = x
