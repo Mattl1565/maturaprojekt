@@ -6,6 +6,8 @@ class Car:
         self.setY(y)  # Use setY method to add the initial y value
         self.id = id
         self.direction = 2
+        self.overtaking = False
+        self.speed = 0
 
     def getX(self):
         return self.x
@@ -27,6 +29,15 @@ class Car:
         else:
             return "unknown"
 
+    def getOvertaking(self):
+        return self.overtaking
+
+    def getSpeed(self):
+        return self.speed
+
+    def setOvertaking(self, overtaking):
+        self.overtaking = overtaking
+
     def setX(self, x):
         self.x = x
 
@@ -44,6 +55,9 @@ class Car:
             self.direction = direction
         else:
             self.direction = 2
+
+    def setSpeed(self, speed):
+        self.speed = speed
 
     def getMeanY(self):
         non_none_values = [value for value in self.y if value is not None]
