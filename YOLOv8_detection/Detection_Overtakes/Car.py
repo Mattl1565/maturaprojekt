@@ -7,6 +7,7 @@ class Car:
         self.id = id
         self.direction = 2
         self.overtaking = False
+        self.speed = 0
 
     def getX(self):
         return self.x
@@ -31,6 +32,9 @@ class Car:
     def getOvertaking(self):
         return self.overtaking
 
+    def getSpeed(self):
+        return self.speed
+
     def setOvertaking(self, overtaking):
         self.overtaking = overtaking
 
@@ -51,6 +55,9 @@ class Car:
             self.direction = direction
         else:
             self.direction = 2
+
+    def setSpeed(self, speed):
+        self.speed = speed
 
     def getMeanY(self):
         non_none_values = [value for value in self.y if value is not None]

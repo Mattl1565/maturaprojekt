@@ -40,6 +40,7 @@ while cap.isOpened():
     # Read a frame from the video
     success, frame = cap.read()
 
+
     if success:
         # Get the current frame's timestamp
         current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)  # Get timestamp in milliseconds
@@ -96,6 +97,7 @@ while cap.isOpened():
         #Check if a Car took over
         if not func.isSortedDown(VisibleCars_down):
             overtakes_down = overtakes_down + 1
+
         if not func.isSortedUp(VisibleCars_up):
             overtakes_up = overtakes_up + 1
 
@@ -143,6 +145,7 @@ while cap.isOpened():
 
         # Plot the scaled tracks and draw the tracking lines
         # draw the Direction of the cars (up or down) at the bottom of the box (x,y,w,h) -> (x,y+h)
+
         for box, track_id in zip(boxes, track_ids):
 
             x, y, w, h = box
@@ -157,16 +160,14 @@ while cap.isOpened():
 
             # Get the direction of the car
             direction = func.get_direction(track_id, CarDict)
+            overtaking = func.get_overtaking(track_id,CarDict)
             # Add the direction label at the bottom of the box
             direction_label = f"Direction: {direction}"
             cv2.putText(annotated_frame, direction_label, (int(x - (w/2)), int(y + (h/2) + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-            i = i + 1
-            if(i < len(VisibleCars) - 1):
-                overtaking = VisibleCars[i].getOvertaking()
             # Add the direction label at the bottom of the box
-                overtaking_label = f"Direction: {overtaking}"
-                cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 25)),
-                            cv2.FONT_ITALIC, 0.7, (0, 0, 255), 2)
+            overtaking_label = f"Overtaking: {overtaking}"
+            cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 35)),
+                        cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
 
         # Display the annotated frame
         cv2.imshow("YOLOv8 Tracking", annotated_frame)
