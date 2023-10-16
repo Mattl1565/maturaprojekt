@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\canada_peace_bridge.mp4'
+video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\canada_peace_bridge.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -175,6 +175,9 @@ while cap.isOpened():
             id_label = f"ID: {id}"
             cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
                         cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
+
+            cv2.putText(annotated_frame, "Overtakes_UP: " + str(overtakes_up), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
+            cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
 
 
         annotated_frame = cv2.resize(annotated_frame, (1080, 720))
