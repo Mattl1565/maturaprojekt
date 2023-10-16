@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\cars_on_highway (1080p).mp4'
+video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\canada_peace_bridge.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -56,8 +56,11 @@ while cap.isOpened():
         results = model.track(frame, persist=True)
 
         # Get the boxes and track IDs
-        boxes = results[0].boxes.xywh.cpu()
-        track_ids = results[0].boxes.id.int().cpu().tolist()
+        try:
+            boxes = results[0].boxes.xywh.cpu()
+            track_ids = results[0].boxes.id.int().cpu().tolist()
+        except:
+            track_ids = []
 
         #  - new car gets detected -> add car.ID + coords to AllCars (list)      ✓
         #  - make sure to save the visible cars in a list (VisibleCars)
@@ -96,10 +99,10 @@ while cap.isOpened():
 
         #Check if a Car took over
         if not func.isSortedDown(VisibleCars_down):
-            overtakes_down = overtakes_down + 1
+            overtakes_up = overtakes_up + 1
 
         if not func.isSortedUp(VisibleCars_up):
-            overtakes_up = overtakes_up + 1
+            overtakes_down = overtakes_down + 1
 
         VisibleCarsBeforeUpdate = list(VisibleCars)
 
@@ -129,11 +132,11 @@ while cap.isOpened():
 
         # Print the currently visible cars
         print("----------------------------------------------------------------")
-        for car in VisibleCars_up:
-            print(car)
-        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
         for car in VisibleCars_down:
-            print(car)
+            print(str(car))
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+        for car in VisibleCars_up:
+            print(str(car))
         print("----------------------------------------------------------------")
         print("Overtakes_UP: " + str(overtakes_up))
         print("Overtakes_DOWN: " + str(overtakes_down))
