@@ -28,14 +28,14 @@ def isSortedDown(list_cars):
             return False
     return True
 
-def get_direction(track_id, CarDict):
+def get_direction_from_Dict(track_id, CarDict):
     return CarDict[track_id].getDirectionString()
 
-def detectDirection(car):
-    if (car.y[0] > car.y[len(car.y) - 1]):
-        return True
-    else:
-        return False
+def get_direction(track_id, list_cars):
+    for car in list_cars:
+        if car.getID() == track_id:
+            return car.getDirectionString()
+
 
 def get_overtaking(track_id, CarDict):
     return CarDict[track_id].getOvertaking()

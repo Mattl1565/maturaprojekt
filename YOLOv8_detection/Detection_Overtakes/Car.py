@@ -1,19 +1,21 @@
 class Car:
     def __init__(self, x, y, id):
         self.screenTime = 1
-        self.y = []  # Initialize as an empty list
+        self.y = y
         self.x = x
-        self.setY(y)  # Use setY method to add the initial y value
         self.id = id
         self.direction = 2
         self.overtaking = False
-        self.speed = 0
+        self.screenTime = 0
+
+    def getScreenTime(self):
+        return self.screenTime
 
     def getX(self):
         return self.x
 
     def getY(self):
-        return self.y[len(self.y) - 1]
+        return self.y
 
     def getID(self):
         return self.id
@@ -32,8 +34,8 @@ class Car:
     def getOvertaking(self):
         return self.overtaking
 
-    def getSpeed(self):
-        return self.speed
+    def setScreenTime(self, screenTime):
+        self.screenTime = screenTime
 
     def setOvertaking(self, overtaking):
         self.overtaking = overtaking
@@ -42,33 +44,16 @@ class Car:
         self.x = x
 
     def setY(self, y):
-        if len(self.y) > 5:
-            self.y.pop(0)
-        self.y.append(y)
-        self.screenTime = self.screenTime + 1
+        self.y = y
+        self.screenTime += 1
 
     def setID(self, id):
         self.id = id
 
     def setDirection(self, direction):
-        if(self.screenTime > 5):
-            self.direction = direction
-        else:
-            self.direction = 2
+        self.direction = direction
 
-    def setSpeed(self, speed):
-        self.speed = speed
 
-    def getMeanY(self):
-        non_none_values = [value for value in self.y if value is not None]
-        if non_none_values:
-            sumi = sum(non_none_values)
-            return sumi / len(non_none_values)
-        else:
-            return 0
-
-    def getY(self):
-        return self.y[len(self.y) - 1]
 
     def __str__(self):
         if(self.direction == 0):
