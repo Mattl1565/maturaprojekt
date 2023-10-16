@@ -42,7 +42,7 @@ class Car:
         self.x = x
 
     def setY(self, y):
-        if len(self.y) > 5:
+        if len(self.y) > 15:
             self.y.pop(0)
         self.y.append(y)
         self.screenTime = self.screenTime + 1
