@@ -35,3 +35,7 @@ def detectDirection(car):
 
 def get_overtaking(track_id, CarDict):
     return CarDict[track_id].getOvertaking()
+
+
+def get_id(track_id, CarDict):
+    return CarDict[track_id].getID()

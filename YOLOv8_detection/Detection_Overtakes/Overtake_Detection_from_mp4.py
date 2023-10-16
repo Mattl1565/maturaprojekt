@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\cars_on_highway (1080p).mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -161,16 +161,22 @@ while cap.isOpened():
             # Get the direction of the car
             direction = func.get_direction(track_id, CarDict)
             overtaking = func.get_overtaking(track_id,CarDict)
+            id = func.get_id(track_id, CarDict)
             # Add the direction label at the bottom of the box
             direction_label = f"Direction: {direction}"
-            cv2.putText(annotated_frame, direction_label, (int(x - (w/2)), int(y + (h/2) + 15)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            cv2.putText(annotated_frame, direction_label, (int(x - (w/2)), int(y + (h/2) + 40)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
             # Add the direction label at the bottom of the box
             overtaking_label = f"Overtaking: {overtaking}"
-            cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 35)),
+            cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
                         cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
+            id_label = f"ID: {id}"
+            cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
+                        cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
 
+
+        annotated_frame = cv2.resize(annotated_frame, (1080, 720))
         # Display the annotated frame
-        cv2.imshow("YOLOv8 Tracking", annotated_frame)
+        cv2.imshow("Overtake detection assisted by YOLOv8", annotated_frame)
 
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
