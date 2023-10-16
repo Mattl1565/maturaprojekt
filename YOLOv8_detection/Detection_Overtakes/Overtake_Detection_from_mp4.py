@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\cars_on_highway (1080p).mp4'
+video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\peaceBridgeCanadaBound.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
