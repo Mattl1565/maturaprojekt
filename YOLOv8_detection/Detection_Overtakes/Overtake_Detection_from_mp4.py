@@ -11,7 +11,7 @@ import Functions as func
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\canada_peace_bridge.mp4'
+video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
@@ -24,12 +24,19 @@ VisibleCars = []
 VisibleCars_up = []
 VisibleCars_down = []
 
+# initialize the variables for the direction detection
+UP = 1
+DOWN = 0
+UNKNOWN = 2
+Y_THRESHOLD = 1
+ListOfCarsAtFirstSight = {}
+
 #test for direction detection
 VisibleCarsBeforeUpdate = []
 
 overtakes_down = 0
 overtakes_up = 0
-help = 0
+tempVariableForFirstIteration = 0
 
 
 #define a scaling factor
@@ -90,12 +97,12 @@ while cap.isOpened():
                 CarDict[track_id] = tempCar
 
         # First Iteration
-        if help == 0:
+        if tempVariableForFirstIteration == 0:
             # Update VisibleCars list with visible cars
             VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
             # Sort Visible Cars by y-coordinate
             VisibleCars.sort(key=lambda x: x.getY())
-            help = 1
+            tempVariableForFirstIteration = 1
 
         #Check if a Car took over
         if not func.isSortedDown(VisibleCars_down):
@@ -115,11 +122,23 @@ while cap.isOpened():
         # if (visible cars vorher > visible cars nachher) -> auto fährt nach oben
         #if len(VisibleCarsBeforeUpdate) == len(VisibleCars):
 
-        for i in range(len(VisibleCars)):
-            if func.detectDirection(VisibleCars[i]) == True:
-                VisibleCars[i].setDirection(1)  # 1 = down
-            elif func.detectDirection(VisibleCars[i]) == False:
-                VisibleCars[i].setDirection(0)  # 0 = up
+        for box, track_id in zip(boxes, track_ids):
+            if track_id not in ListOfCarsAtFirstSight:
+                x, y, w, h = box
+                x = x.numpy()
+                y = y.numpy()
+                tempCar = Car(x, y, track_id)
+                ListOfCarsAtFirstSight[track_id] = tempCar
+
+        for car in ListOfCarsAtFirstSight:
+            for car_act in VisibleCars:
+                if ListOfCarsAtFirstSight[car].getID() == car_act.getID():
+                    if ((ListOfCarsAtFirstSight[car].getY() + Y_THRESHOLD) <= car_act.getY()) and car_act.getScreenTime() > 7:
+                        ListOfCarsAtFirstSight[car].setDirection(DOWN)
+                        car_act.setDirection(DOWN)
+                    elif (ListOfCarsAtFirstSight[car].getY() - Y_THRESHOLD) >= car_act.getY() and car_act.getScreenTime() > 7:
+                        ListOfCarsAtFirstSight[car].setDirection(UP)
+                        car_act.setDirection(UP)
 
         # divide all the visible cars into _up and _down
         VisibleCars_up = [car for car in VisibleCars if car.getDirection() == 0]
@@ -159,10 +178,10 @@ while cap.isOpened():
 
             # Draw the tracking lines
             points = np.array(track).astype(np.int32).reshape((-1, 1, 2))
-            # cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 0, 255),thickness=4)  # Adjust thickness if needed
+            cv2.polylines(annotated_frame, [points], isClosed=False, color=(0, 0, 255),thickness=4)  # Adjust thickness if needed
 
             # Get the direction of the car
-            direction = func.get_direction(track_id, CarDict)
+            direction = func.get_direction_from_Dict(track_id, CarDict)
             overtaking = func.get_overtaking(track_id,CarDict)
             id = func.get_id(track_id, CarDict)
             # Add the direction label at the bottom of the box
