@@ -4,7 +4,7 @@ from paho import mqtt
 
 # setting callbacks for different events to see if it works, print the message etc.
 def on_connect(client, userdata, flags, rc, properties=None):
-    print("Steuereinheit received with code %s." % rc)
+    print("Bodenkamera received with code %s." % rc)
 
 # with this callback you can see if your publish was successful
 def on_publish(client, userdata, mid, properties=None):
@@ -37,10 +37,10 @@ client.on_message = on_message
 client.on_publish = on_publish
 
 # subscribe to all topics of encyclopedia by using the wildcard "#"
-client.subscribe("steuereinheit/#", qos=1)
+client.subscribe("steuereinheit/bodenkamera", qos=1)
 
 # a single publish, this can also be done in loops, etc.
-client.publish("steuereinheit/bodenkamera", payload="hot", qos=1)
+client.publish("steuereinheit/bodenkamera", payload="photo of an alleged illegal overtaker", qos=1)
 
 # loop_forever for simplicity, here you need to stop the loop manually
 # you can also use loop_start and loop_stop
