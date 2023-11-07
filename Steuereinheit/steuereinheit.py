@@ -10,12 +10,13 @@ port = 1883  # Default MQTT port
 topic1 = "Steuereinheit/befehle"
 topic2 = "Steuereinheit/kennzeichen_foto"
 
+
 # Message to be published
 message = "Work harder, child!"
 
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected to MQTT broker with result code " + str(rc))
+    print("Connected to MQTT broker with result code " + str(rc) + "\n")
     client.subscribe(topic2)
 
 

@@ -9,23 +9,23 @@ topic1 = "Steuereinheit/befehle"
 topic2 = "Steuereinheit/kennzeichen_foto"
 
 
-# Path to the JPG file you want to publish
 image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Bodenkamera\\kennzeichen.jpg"
 
 
 # Callback function to handle connection
 def on_connect(client, userdata, flags, rc):
-    print("Connected to MQTT broker with result code " + str(rc))
+    print("Connected to MQTT broker with result code " + str(rc) + "\n")
+    client.subscribe(topic1)
+    client.publish(topic1, "Test!", qos=1)
+    client.publish(topic2, "Test2!", qos=1)
 
-    # Read the image file as binary data
-    with open(image_path, "rb") as file:
-        image_data = file.read()
+def on_message(client, userdata, message):
+    print(f"Received message on topic {message.topic}")
+    if message.topic == topic1:
+        with open(image_path, "rb") as file:
+            image_data = file.read()
+            client.publish(topic2, image_data, qos=1)
 
-    # Publish the image data as the payload of the MQTT message
-    client.publish(topic2, image_data, qos=1)  # Set qos to 1 for message acknowledgment
-
-
-# Create an MQTT client instance
 client = mqtt.Client()
 
 # Set the callback function
@@ -38,7 +38,8 @@ client.connect(broker_address, port, 60)
 client.loop_start()
 
 # You can continue your program logic here
-print("Das war ein Befehl:", client.subscribe(topic1))
+client.publish(topic1, "Test!", qos=1)
+client.publish(topic2, "Test2!", qos=1)
 # Example: Wait for user input to exit the script
 input("Press Enter to exit...\n")
 
