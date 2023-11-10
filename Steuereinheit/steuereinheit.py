@@ -9,15 +9,18 @@ port = 1883  # Default MQTT port
 # Topic to which you want to publish the message
 topic1 = "Steuereinheit/befehle"
 topic2 = "Steuereinheit/kennzeichen_foto"
+topic3 = "Steuereinheit/take_pic"
+topic5 = "Steuereinheit/drone_telemetry"
 
 
 # Message to be published
-message = "Work harder, child!"
+message_to_raspi = "Take a Picture now!"
 
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
     client.subscribe(topic2)
+    client.subscribe(topic3)
 
 
 def on_message(client, userdata, message):
@@ -31,6 +34,8 @@ def on_message(client, userdata, message):
         cv.imshow("Received Image", image)
         cv.waitKey(0)
         cv.destroyAllWindows()
+    if message.topic == topic3:
+        client.publish(topic1, message_to_raspi, qos=1)
 
 
 # Create an MQTT client instance
@@ -47,7 +52,7 @@ client.connect(broker_address, port, 60)
 client.loop_start()
 
 # Publish a message to topic1
-client.publish(topic1, message, qos=1)
+
 
 # Example: Wait for user input to exit the script
 input("Press Enter to exit...\n")
