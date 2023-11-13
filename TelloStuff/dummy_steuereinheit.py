@@ -17,7 +17,7 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, message):
     print(f"Received message: On topic {message.topic}")
     if message.topic == topic43:
-        TelloCommands.takeoff()
+        client.publish(topic41, TelloCommands.takeoff(), qos=1)
 
 client = mqtt.Client()
 
