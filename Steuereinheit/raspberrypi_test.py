@@ -5,32 +5,35 @@ broker_address = "localhost"  # Replace this with your broker's address if it's 
 port = 1883  # Default MQTT port
 
 # Topic to which you want to publish the message
-topic1 = "Steuereinheit/befehle"
-topic2 = "Steuereinheit/kennzeichen_foto"
+topic31 = "Steuereinheit/commands_to_ground_camera"
+topic32 = "Steuereinheit/kennzeichen_foto"
+topic42 = "Steuereinheit/take_pic"
 
+topic100 = "Steuereinheit/test"
 
-image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Bodenkamera\\kennzeichen.jpg"
+image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\kennzeichen.jpg"
+
 
 
 # Callback function to handle connection
 def on_connect(client, userdata, flags, rc):
+    client.subscribe(topic31)
+    client.subscribe(topic42)
+    client.subscribe(topic100)
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    client.subscribe(topic1)
-    with open(image_path, "rb") as file:
-        image_data = file.read()
-        client.publish(topic2, image_data, qos=1)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
-    if message.topic == topic1:
+    if (message.topic == topic42) or (message.topic == topic31):
         with open(image_path, "rb") as file:
             image_data = file.read()
-            client.publish(topic2, image_data, qos=1)
+            client.publish(topic32, image_data, qos=1)
 
 client = mqtt.Client()
 
 # Set the callback function
 client.on_connect = on_connect
+client.on_message = on_message
 
 # Connect to the broker
 client.connect(broker_address, port, 60)
@@ -42,5 +45,5 @@ client.loop_start()
 input("Press Enter to exit...\n")
 
 
-client.loop_stop()
-client.disconnect()
+#client.loop_stop()
+#client.disconnect()
