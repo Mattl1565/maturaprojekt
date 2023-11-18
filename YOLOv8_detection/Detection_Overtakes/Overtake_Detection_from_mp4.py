@@ -6,6 +6,8 @@ from ultralytics import YOLO
 import time
 from Car import Car
 import Functions as func
+import paho.mqtt.client as mqtt
+
 
 # Load the YOLOv8 model
 model = YOLO('../Model/yolov8n.pt')

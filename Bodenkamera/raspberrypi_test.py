@@ -1,47 +1,46 @@
-import time
-import paho.mqtt.client as paho
-from paho import mqtt
+import paho.mqtt.client as mqtt
 
-# setting callbacks for different events to see if it works, print the message etc.
-def on_connect(client, userdata, flags, rc, properties=None):
-    print("Bodenkamera received with code %s." % rc)
+# MQTT broker address and port
+broker_address = "localhost"  # Replace this with your broker's address if it's different
+port = 1883  # Default MQTT port
 
-# with this callback you can see if your publish was successful
-def on_publish(client, userdata, mid, properties=None):
-    print("mid: " + str(mid))
+# Topic to which you want to publish the message
+topic1 = "Steuereinheit/befehle"
+topic2 = "Steuereinheit/kennzeichen_foto"
 
-# print which topic was subscribed to
-def on_subscribe(client, userdata, mid, granted_qos, properties=None):
-    print("Subscribed: " + str(mid) + " " + str(granted_qos))
 
-# print message, useful for checking if it was successful
-def on_message(client, userdata, msg):
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Bodenkamera\\kennzeichen.jpg"
 
-# using MQTT version 5 here, for 3.1.1: MQTTv311, 3.1: MQTTv31
-# userdata is user defined data of any type, updated by user_data_set()
-# client_id is the given name of the client
-client = paho.Client(client_id="", userdata=None, protocol=paho.MQTTv5)
+
+# Callback function to handle connection
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT broker with result code " + str(rc) + "\n")
+    client.subscribe(topic1)
+    with open(image_path, "rb") as file:
+        image_data = file.read()
+        client.publish(topic2, image_data, qos=1)
+
+def on_message(client, userdata, message):
+    print(f"Received message on topic {message.topic}")
+    if message.topic == topic1:
+        with open(image_path, "rb") as file:
+            image_data = file.read()
+            client.publish(topic2, image_data, qos=1)
+
+client = mqtt.Client()
+
+# Set the callback function
 client.on_connect = on_connect
 
-# enable TLS for secure connection
-client.tls_set(tls_version=mqtt.client.ssl.PROTOCOL_TLS)
-# set username and password
-client.username_pw_set("Mattl", "Amdusias345")
-# connect to HiveMQ Cloud on port 8883 (default for MQTT)
-client.connect("50da3d644a6e4eb3ab1528547a0e5e02.s2.eu.hivemq.cloud", 8883)
+# Connect to the broker
+client.connect(broker_address, port, 60)
 
-# setting callbacks, use separate functions like above for better visibility
-client.on_subscribe = on_subscribe
-client.on_message = on_message
-client.on_publish = on_publish
+# Loop to maintain the connection and handle messages
+client.loop_start()
 
-# subscribe to all topics of encyclopedia by using the wildcard "#"
-client.subscribe("steuereinheit/bodenkamera", qos=1)
+# Example: Wait for user input to exit the script
+input("Press Enter to exit...\n")
 
-# a single publish, this can also be done in loops, etc.
-client.publish("steuereinheit/bodenkamera", payload="photo of an alleged illegal overtaker", qos=1)
 
-# loop_forever for simplicity, here you need to stop the loop manually
-# you can also use loop_start and loop_stop
-client.loop_forever()
+client.loop_stop()
+client.disconnect()
