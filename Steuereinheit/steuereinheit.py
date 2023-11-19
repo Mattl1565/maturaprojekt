@@ -49,7 +49,7 @@ def on_message(client, userdata, message):
         print(message.payload.decode())  # THEN we print it out
 
     if message.topic == topic43: ##IF Drone connected to MQTT
-        client.publish(topic41, TelloCommands.takeoff(), qos=1) #THEN it should take off
+        client.publish(topic21, TelloCommands.takeoff(), qos=1) #THEN it should take off
 
     if message.topic == topic52: #IF we recieve the string of the licence plate
         print(message.payload.decode()) #THEN we print it out

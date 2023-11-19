@@ -13,7 +13,7 @@ import paho.mqtt.client as mqtt
 model = YOLO('../Model/yolov8n.pt')
 
 # Open the video file
-video_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\test3.mp4'
+video_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4'
 cap = cv2.VideoCapture(video_path)
 
 # Store the track history
