@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 
 # MQTT broker address and port
 broker_address = "localhost"  # Replace this with your broker's address if it's different
-port = 1883  # Default MQTT port
+port = 1884  # Default MQTT port
 
 # Topic to which you want to subscribe for the video stream
 topic23 = "Steuereinheit/video_stream"

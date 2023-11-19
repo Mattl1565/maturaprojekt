@@ -5,7 +5,7 @@ import json
 tello = Tello()
 connected = False
 
-broker_address = "x.x.x.x:1883"
+broker_address = "212.197.150.98"
 broker_port = 1883
 topic41 = "Steuereinheit/commands_to_drone"
 topic42 = "Steuereinheit/drone_telemetry"

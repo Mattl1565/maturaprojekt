@@ -4,7 +4,7 @@ import numpy as np
 
 # MQTT broker address and port
 broker_address = "localhost"  # Replace this with your broker's address if it's different
-port = 1883  # Default MQTT port
+port = 1884  # Default MQTT port
 
 
 topic32 = "Steuereinheit/kennzeichen_foto"
