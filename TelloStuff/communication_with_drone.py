@@ -3,10 +3,17 @@ import paho.mqtt.client as mqtt
 import json
 
 tello = Tello()
+
+ssid = "TP-LINK_AP_641359"
+
+
+tello.connect_to_wifi(ssid, " ")
 connected = False
 
-broker_address = "212.197.150.98"
-broker_port = 1883
+
+broker_address = "mattl1.ddns.net"
+broker_port = 1884
+
 topic41 = "Steuereinheit/commands_to_drone"
 topic42 = "Steuereinheit/drone_telemetry"
 topic43 = "Steuereinheit/drone_on"
@@ -41,6 +48,7 @@ def on_message(client, userdata, message):
             elif command == "takeoff":
                 tello.takeoff()
                 print("Taking off!")
+                tello.land()
             elif command == "land":
                 tello.land()
                 print("Landing!")
@@ -55,7 +63,8 @@ client = mqtt.Client()
 client.on_message = on_message
 client.on_connect = on_connect
 
-if(tello.connect() == True):
-    client.connect(broker_address, broker_port, 60)
+#if(tello.connect() == True):
+print("Connecting to MQTT broker")
+client.connect(broker_address, broker_port, 60)
 
 client.loop_forever()
