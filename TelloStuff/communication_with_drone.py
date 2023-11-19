@@ -10,8 +10,10 @@ ssid = "TP-LINK_AP_641359"
 tello.connect_to_wifi(ssid, " ")
 connected = False
 
+
 broker_address = "mattl1.ddns.net"
 broker_port = 1884
+
 topic41 = "Steuereinheit/commands_to_drone"
 topic42 = "Steuereinheit/drone_telemetry"
 topic43 = "Steuereinheit/drone_on"
