@@ -1,19 +1,32 @@
+import time
+from threading import Thread
+
+import cv2
 from djitellopy import Tello
 import paho.mqtt.client as mqtt
 import json
 
 tello = Tello()
-tello.connect()
+#tello.connect()
+
+#tello.streamon()
+#frame_read = tello.get_frame_read()
+
 connected = False
 
 
-broker_address = "10.0.0.17"
+broker_address = "10.22.253.0"
 broker_port = 1884
 
+topic23 = "Steuereinheit/video_stream"
 topic41 = "Steuereinheit/commands_to_drone"
 topic42 = "Steuereinheit/drone_telemetry"
 topic43 = "Steuereinheit/drone_on"
 
+
+#EINGESCHLEUSTES VIDEO
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4"
+chunk_size = 1024
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
@@ -50,13 +63,93 @@ def on_message(client, userdata, message):
             elif command == "get_battery":
                 tello.get_battery()
                 print("Battery:", tello.get_battery())
+            elif command == "get_single_pic":
+                cv2.imwrite("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\TelloStuff\\tello_output.jpg", frame_read.frame)
+                with open("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\TelloStuff\\tello_output.jpg", "rb") as file:
+                    image_data = file.read()
+                    client.publish(topic23, image_data, qos=1)
+            elif command == "get_camera_feed":
+                cap = cv2.VideoCapture(video_path)
+
+                # Check if the video file is opened successfully
+                if not cap.isOpened():
+                    print("Error: Could not open video file.")
+                    exit()
+
+                try:
+                    frame_buffer = 60
+
+                    for _ in range(frame_buffer):
+                        # Read a frame from the video
+                        ret, frame = cap.read()
+
+                        if not ret:
+                            break  # Break the loop if the video is finished
+
+                        # Convert the frame to bytes
+                        _, buffer = cv2.imencode('.jpg', frame)
+                        data = buffer.tobytes()
+
+                        # Publish the frame data to the MQTT topic
+                        client.publish(topic23, data, qos=0)
+
+                        # Wait for a short time to control the streaming rate
+                        time.sleep(0.1)
+
+                except KeyboardInterrupt:
+                    pass
+
+                finally:
+                    # Release the video capture object and disconnect from MQTT
+                    cap.release()
+
+
+            elif command == "get_telemetry":
+                tello.get_battery()
+                tello.get_temperature()
+                tello.get_speed_x()
+                tello.get_speed_y()
+                tello.get_speed_z()
+                tello.get_height()
+                tello.get_flight_time()
+                tello.get_barometer()
+
+                client.publish(topic42, json.dumps({
+                    "battery": tello.get_battery(),
+                    "temperature": (tello.get_temperature() - 32) * 5/9,
+                    "speed_x": tello.get_speed_x(),
+                    "speed_y": tello.get_speed_y(),
+                    "speed_z": tello.get_speed_z(),
+                    "height": tello.get_height(),
+                    "flight_time": tello.get_flight_time(),
+                    "barometer": tello.get_barometer()
+                }), qos=0)
+
+                print("Telemetry: -------------------------")
+                print("Battery:", tello.get_battery(), "%")
+                print("Temperature:", (tello.get_temperature() - 32) * 5/9, "°C")
+                print("Speed_x:", tello.get_speed_x())
+                print("Speed_y:", tello.get_speed_y())
+                print("Speed_z:", tello.get_speed_z())
+                print("Height:", tello.get_height(), "cm")
+                print("Flight time:", tello.get_flight_time(), "s")
+                print("Barometer:", tello.get_barometer(), "hPa")
+                print("------------------------------------")
             else:
                 print("Unknown command in payload")
+
+
+def on_publish(client, userdata, mid):
+
+    print("Publishing!")
+
+
 
 client = mqtt.Client()
 
 client.on_message = on_message
 client.on_connect = on_connect
+client.on_publish = on_publish
 
 #if(tello.connect() == True):
 print("Connecting to MQTT broker")
