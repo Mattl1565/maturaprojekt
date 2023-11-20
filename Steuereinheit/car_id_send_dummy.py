@@ -8,8 +8,9 @@ broker_address = "localhost"  # Replace this with your broker's address if it's 
 port = 1884  # Default MQTT port
 
 # Topic to which you want to subscribe for the video stream
-topic23 = "Steuereinheit/video_stream"
+
 topic42 = "Steuereinheit/take_pic"
+topic23 = "Steuereinheit/video_stream"
 
 # Path to save the received video
 received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\received_video.mp4"

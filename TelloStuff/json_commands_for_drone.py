@@ -61,3 +61,35 @@ class TelloCommands:
         }
         json_message = json.dumps(data)
         return json_message
+
+    @staticmethod
+    def do_360():
+        data = {
+            "command": "do_360"
+        }
+        json_message = json.dumps(data)
+        return json_message
+
+    @staticmethod
+    def get_telemetry():
+        data = {
+            "command": "get_telemetry"
+        }
+        json_message = json.dumps(data)
+        return json_message
+
+    @staticmethod
+    def get_single_pic():
+        data = {
+            "command": "get_single_pic"
+        }
+        json_message = json.dumps(data)
+        return json_message
+
+    @staticmethod
+    def get_camera_feed():
+        data = {
+            "command": "get_camera_feed"
+        }
+        json_message = json.dumps(data)
+        return json_message
