@@ -7,12 +7,13 @@ import paho.mqtt.client as mqtt
 import json
 
 tello = Tello()
-tello.connect()
+#tello.connect()
 
-tello.streamon()
-frame_read = tello.get_frame_read()
+#tello.streamon()
+#frame_read = tello.get_frame_read()
 
 connected = False
+
 
 broker_address = "10.22.253.0"
 broker_port = 1884
@@ -76,7 +77,7 @@ def on_message(client, userdata, message):
                     exit()
 
                 try:
-                    frame_buffer = 200
+                    frame_buffer = 60
 
                     for _ in range(frame_buffer):
                         # Read a frame from the video
@@ -138,11 +139,17 @@ def on_message(client, userdata, message):
                 print("Unknown command in payload")
 
 
+def on_publish(client, userdata, mid):
+
+    print("Publishing!")
+
+
 
 client = mqtt.Client()
 
 client.on_message = on_message
 client.on_connect = on_connect
+client.on_publish = on_publish
 
 #if(tello.connect() == True):
 print("Connecting to MQTT broker")

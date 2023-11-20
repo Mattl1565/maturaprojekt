@@ -1,3 +1,4 @@
+import json
 from collections import defaultdict
 import Overtake_Detection
 import cv2
@@ -25,23 +26,22 @@ topic42 = "Steuereinheit/take_pic"
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
     client.subscribe(topic23)
+    client.subscribe(topic41)
 
 # Callback function to handle message reception
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
+    if(message.topic == topic41):
+        payload = json.loads(message.payload.decode('utf-8'))
+        if "command" in payload:
+            command = payload["command"]
+            if command == "check_for_overtake":
+                video_path = payload.get("video_path", 0)
+                check_for_overtake(video_path)
+                print("Overtake Detection started!")
 
-client = mqtt.Client()
 
-# Set the callback functions
-client.on_connect = on_connect
-client.on_message = on_message
-
-# Connect to the MQTT broker
-client.connect(broker_address, port, 60)
-
-# Loop to maintain the connection and handle messages
-client.loop_start()
 
 def check_for_overtake(video_path):
 
@@ -141,9 +141,11 @@ def check_for_overtake(video_path):
             #Check if a Car took over
             if not func.isSortedDown(VisibleCars_down):
                 overtakes_up = overtakes_up + 1
+                client.publish(topic42, "Car took over!", qos=1)
 
             if not func.isSortedUp(VisibleCars_up):
                 overtakes_down = overtakes_down + 1
+                client.publish(topic42, "Car took over!", qos=1)
 
             VisibleCarsBeforeUpdate = list(VisibleCars)
 
@@ -246,3 +248,17 @@ def check_for_overtake(video_path):
 
 # Release the video capture object and close the display window
     cap.release()
+    time.sleep(40)
+
+client = mqtt.Client()
+
+# Set the callback functions
+client.on_connect = on_connect
+client.on_message = on_message
+
+# Connect to the MQTT broker
+client.connect(broker_address, port, 60)
+print("Connecting to MQTT!")
+
+# Loop to maintain the connection and handle messages
+client.loop_start()
