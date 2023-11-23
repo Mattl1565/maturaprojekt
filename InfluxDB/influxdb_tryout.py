@@ -1,33 +1,51 @@
-from influxdb import InfluxDBClient
+import json
 
-# Set up InfluxDB connection
-host = 'localhost'  # Change this to your InfluxDB server host
-port = 8086  # Change this to your InfluxDB server port
-database = 'maturaprojekt'  # Change this to your desired database name
-username = 'admin'  # Change this to your InfluxDB username
-password = 'admin'  # Change this to your InfluxDB password
+import influxdb_client, os, time
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import SYNCHRONOUS
+from paho import mqtt
 
-client = InfluxDBClient(host, port, username, password, database)
+from InfluxDB.functions import write_telemetry
 
-# Define a sample data point
-measurement = 'temperature'
-tags = {'location': 'room1'}
-fields = {'value': 25.5}
-json_body = [
-    {
-        'measurement': measurement,
-        'tags': tags,
-        'fields': fields
-    }
-]
 
-# Write data to InfluxDB
-client.write_points(json_body)
+broker_address = "10.22.253.0"
+broker_port = 1884
+topic42 = "Steuereinheit/drone_telemetry"
+topic61 = "Steuereinheit/InfluxDB"
 
-# Query data from InfluxDB
-result = client.query('SELECT * FROM "{}"'.format(measurement))
-print("Query Result:")
-print(result.raw)
+token = "GxIxdhdibmd-xgl_0uK996cw4ta_9M0INkrjVFqbLILccQIfFUYatmcanJG_7ARcbL0qTifpHO0DJg2-O_ZxBg=="
+org = "Maturaprojekt"
+url = "http://localhost:8086"
 
-# Close the InfluxDB connection
-client.close()
+write_client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
+
+bucket = "drone_telemetry"
+
+write_api = write_client.write_api(write_options=SYNCHRONOUS)
+
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected to MQTT broker with result code " + str(rc) + "\n")
+    client.subscribe(topic42)
+    client.publish(topic61, "MQTT-Connection to InfluxDB established!", qos=0)
+
+def on_message(client, userdata, message):
+    if(message.topic == topic42):  #DRONE TELEMETRY
+        payload = json.loads(message.payload.decode('utf-8'))
+        write_telemetry(payload)
+
+mqtt_client = mqtt.Client()
+
+mqtt_client.on_message = on_message
+mqtt_client.on_connect = on_connect
+
+#if(tello.connect() == True):
+print("Connecting to MQTT broker")
+mqtt_client.connect(broker_address, broker_port, 60)
+
+mqtt_client.loop_forever()
+
+
+
+
+

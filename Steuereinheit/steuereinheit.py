@@ -21,7 +21,7 @@ topic21 = "Steuereinheit/commands_to_drone"
 topic31 = "Steuereinheit/commands_to_ground_camera"
 topic41 = "Steuereinheit/commands_to_overtake_ai"
 topic51 = "Steuereinheit/commands_to_licence_plate_ai"
-
+topic61 = "Steuereinheit/InfluxDB"
 
 topic22 = "Steuereinheit/drone_telemetry"
 topic23 = "Steuereinheit/video_stream"
@@ -44,6 +44,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(topic42)
     client.subscribe(topic43)
     client.subscribe(topic52)
+    client.subscribe(topic61)
     #client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
 
 def on_message(client, userdata, message):
