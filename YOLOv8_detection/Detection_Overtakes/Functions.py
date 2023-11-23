@@ -40,4 +40,7 @@ def get_direction(track_id, list_cars):
 def get_overtaking(track_id, CarDict):
     return CarDict[track_id].getOvertaking()
 
+def get_id(track_id, CarDict):
+    return CarDict[track_id].getID()
+
 
