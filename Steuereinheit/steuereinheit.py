@@ -6,11 +6,10 @@ import cv2 as cv
 import paho.mqtt.client as mqtt
 import numpy as np
 
+from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
-from TelloStuff.json_commands_for_drone import TelloCommands
 
-
-received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\received_video.mp4"
+received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 video_writer = None
 
 # MQTT broker address and port
@@ -45,7 +44,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(topic43)
     client.subscribe(topic52)
     client.subscribe(topic61)
-    #client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
+    client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -54,6 +53,7 @@ def on_message(client, userdata, message):
         print(message.payload.decode()) #THEN we print it out
 
     if message.topic == topic23: #IF we recieve video from drone
+
         global video_writer
         print("Recieved jpg from drone")
         nparr = np.frombuffer(message.payload, np.uint8, count=-1)
@@ -80,19 +80,14 @@ def on_message(client, userdata, message):
         print(message.payload.decode())  # THEN we print it out
 
     if message.topic == topic43: ##IF Drone connected to MQTT
-        #client.publish(topic21, TelloCommands.get_telemetry())
-        #client.publish(topic21, TelloCommands.takeoff(), qos=1) #THEN it should take off
-        #client.publish(topic21, TelloCommands.get_telemetry())
-        #client.publish(topic21, TelloCommands.move_up(120))
-        #client.publish(topic21, TelloCommands.get_telemetry())
-        #client.publish(topic21, TelloCommands.move_forward(250))
-        #client.publish(topic21, TelloCommands.get_telemetry())
-        #client.publish(topic21, TelloCommands.move_back(270))
-        #client.publish(topic21, TelloCommands.get_telemetry())
+
+        #i = 0
+        #while(i < 20):
+        #    client.publish(topic21, TelloCommands.get_telemetry())
+        #    i = i+1
+        #client.publish(topic21, TelloCommands.takeoff())
         #client.publish(topic21, TelloCommands.land())
-
         client.publish(topic21, TelloCommands.get_camera_feed())
-
 
     if message.topic == topic52: #IF we recieve the string of the licence plate
         print(message.payload.decode()) #THEN we print it out
@@ -102,18 +97,13 @@ def on_publish(client, userdata, mid):
     print("Publishing!")
 
 def timer_function():
-    time.sleep(3)
+    time.sleep(15)
+    print("Sending video finished!")
+    client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
     video_writer.release()
-    clip1 = VideoFileClip("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\last_15_seconds.mp4")
-    clip2 = VideoFileClip("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\received_video.mp4")
-    final_clip = concatenate_videoclips([clip1, clip2])
-    final_clip.write_videofile("output_video.mp4", codec="libx264", audio_codec="aac")
-    clip1.close()
-    clip2.close()
-    #client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
 
 # Create an MQTT client instance
-client = mqtt.Client()
+client = mqtt.Client("Steuereinheit")
 
 # Set the callback functions
 client.on_connect = on_connect
