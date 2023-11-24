@@ -1,3 +1,4 @@
+import json
 import threading
 import time
 from moviepy.editor import VideoFileClip, concatenate_videoclips
@@ -10,6 +11,7 @@ from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
 
 received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
+
 video_writer = None
 
 # MQTT broker address and port
@@ -24,6 +26,7 @@ topic61 = "Steuereinheit/InfluxDB"
 
 topic22 = "Steuereinheit/drone_telemetry"
 topic23 = "Steuereinheit/video_stream"
+topic24 = "Steuereinheit/stream_off"
 topic32 = "Steuereinheit/kennzeichen_foto"
 topic42 = "Steuereinheit/take_pic"
 topic43 = "Steuereinheit/drone_on"
@@ -39,12 +42,13 @@ def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
     client.subscribe(topic22)
     client.subscribe(topic23)
+    client.subscribe(topic24)
     client.subscribe(topic32)
     client.subscribe(topic42)
     client.subscribe(topic43)
     client.subscribe(topic52)
     client.subscribe(topic61)
-    client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
+    #client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -53,7 +57,6 @@ def on_message(client, userdata, message):
         print(message.payload.decode()) #THEN we print it out
 
     if message.topic == topic23: #IF we recieve video from drone
-
         global video_writer
         print("Recieved jpg from drone")
         nparr = np.frombuffer(message.payload, np.uint8, count=-1)
@@ -65,8 +68,10 @@ def on_message(client, userdata, message):
 
         video_writer.write(frame)
 
-        timer_thread = threading.Thread(target=timer_function)
-        timer_thread.start()
+    if message.topic == topic24:
+        print("Video finished!")
+        client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
+        video_writer.release()
 
     if message.topic == topic32:   #IF we recieve picture from ground cam
         image_data = np.frombuffer(message.payload, dtype=np.uint8)
@@ -95,12 +100,6 @@ def on_message(client, userdata, message):
 
 def on_publish(client, userdata, mid):
     print("Publishing!")
-
-def timer_function():
-    time.sleep(15)
-    print("Sending video finished!")
-    client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
-    video_writer.release()
 
 # Create an MQTT client instance
 client = mqtt.Client("Steuereinheit")

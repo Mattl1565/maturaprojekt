@@ -15,10 +15,11 @@ import json
 connected = False
 
 
-broker_address = "10.0.0.17"
+broker_address = "localhost"
 broker_port = 1884
 
 topic23 = "Steuereinheit/video_stream"
+topic24 = "Steuereinheit/stream_off"
 topic41 = "Steuereinheit/commands_to_drone"
 topic42 = "Steuereinheit/drone_telemetry"
 topic43 = "Steuereinheit/drone_on"
@@ -79,16 +80,18 @@ def on_message(client, userdata, message):
 
                 for _ in range(frame_buffer):
                     ret, frame = cap.read()
-
+                    print("Reading in frame")
                     if not ret:
                         break  # Break the loop if the video is finished
-
-                    _, buffer = cv2.imencode('.jpg', frame)
+                    compression_quality = 20
+                    _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression_quality])
                     data = buffer.tobytes()
+                    print("Sending frame")
                     client.publish(topic23, data, qos=0)
 
-                    time.sleep(0.1)
+                    #time.sleep(0.1)
 
+                client.publish(topic24, "I am finished like CR7", qos=0)
                 cap.release()
 
 
