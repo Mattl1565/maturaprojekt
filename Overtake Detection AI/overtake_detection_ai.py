@@ -35,8 +35,7 @@ def on_message(client, userdata, message):
             if command == "check_for_overtake":
                 #video_path = payload.get("video_path", 0)
                 print("Overtake Detection started!")
-                process = subprocess.Popen(['python3', 'detect_ai_test.py'])
-                #return_code = process.returncode
+                #START DETECTION
 
 client = mqtt.Client("Overtake Detection AI")
 

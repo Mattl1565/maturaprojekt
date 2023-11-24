@@ -83,7 +83,7 @@ def on_message(client, userdata, message):
                     print("Reading in frame")
                     if not ret:
                         break  # Break the loop if the video is finished
-                    compression_quality = 20
+                    compression_quality = 30
                     _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression_quality])
                     data = buffer.tobytes()
                     print("Sending frame")
@@ -92,6 +92,7 @@ def on_message(client, userdata, message):
                     #time.sleep(0.1)
 
                 client.publish(topic24, "I am finished like CR7", qos=0)
+                print("FINISHED SENDING!")
                 cap.release()
 
 
