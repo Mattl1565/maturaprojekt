@@ -85,15 +85,14 @@ def on_message(client, userdata, message):
         print(message.payload.decode())  # THEN we print it out
 
     if message.topic == topic43: ##IF Drone connected to MQTT
-
-        i = 0
-        client.publish(topic21, TelloCommands.takeoff())
+        telemetry_thread = threading.Thread(target=send_telemetry, args=(client,))
+        telemetry_thread.start()
+        tag_der_offenen_tuer()
+        #client.publish(topic21, TelloCommands.takeoff())
         #client.publish(topic21, TelloCommands.do_flip())
-        while(i < 20):
-            client.publish(topic21, TelloCommands.get_telemetry())
-            i = i+1
-        client.publish(topic21, TelloCommands.land())
+        #client.publish(topic21, TelloCommands.land())
         #client.publish(topic21, TelloCommands.get_camera_feed())
+        telemetry_thread.join()
 
     if message.topic == topic52: #IF we recieve the string of the licence plate
         print(message.payload.decode()) #THEN we print it out
@@ -101,6 +100,14 @@ def on_message(client, userdata, message):
 
 def on_publish(client, userdata, mid):
     print("Publishing!")
+
+def tag_der_offenen_tuer():
+    client.publish(topic21, TelloCommands.takeoff())
+    client.publish(topic21, TelloCommands.move_up(40))
+    client.publish(topic21, TelloCommands.move_forward(100))
+    client.publish(topic21, TelloCommands.move_back(100))
+    client.publish(topic21, TelloCommands.land())
+
 
 # Create an MQTT client instance
 client = mqtt.Client("Steuereinheit")
@@ -116,6 +123,8 @@ client.connect(broker_address, port, 60)
 # Loop to maintain the connection and handle messages
 client.loop_start()
 
+def send_telemetry(client):
+    client.publish(topic21, TelloCommands.get_telemetry())
 
 # Example: Wait for user input to exit the script
 input("Press Enter to exit...\n")
