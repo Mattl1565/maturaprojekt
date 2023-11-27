@@ -1,7 +1,8 @@
 import paho.mqtt.client as mqtt
-
+import Utils.find_ipv4_adress as ip
 # MQTT broker address and port
-broker_address = "localhost"  # Replace this with your broker's address if it's different
+
+broker_address = ip.useful_functions.get_ip_address()
 port = 1884  # Default MQTT port
 
 # Topic to which you want to publish the message
@@ -11,7 +12,7 @@ topic42 = "Steuereinheit/take_pic"
 
 topic100 = "Steuereinheit/test"
 
-image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\kennzeichen.jpg"
+image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
 
 
 

@@ -1,5 +1,3 @@
-import time
-
 import influxdb_client
 from influxdb_client import Point
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -11,10 +9,10 @@ url = "http://localhost:8086"
 
 write_client = influxdb_client.InfluxDBClient(url=url, token=token_laptop, org=org)
 
-bucket = "drone_telemetry"
+bucket_telemetry = "drone_telemetry"
+bucket_overtakes = "overtake_stats"
 
 write_api = write_client.write_api(write_options=SYNCHRONOUS)
-
 
 def write_telemetry(payload):
     temperature = payload["temperature"]
@@ -68,11 +66,30 @@ def write_telemetry(payload):
     )
 
 
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point1)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point2)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point3)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point4)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point5)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point6)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point7)
-    write_api.write(bucket=bucket, org="Maturaprojekt", record=point8)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point1)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point2)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point3)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point4)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point5)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point6)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point7)
+    write_api.write(bucket=bucket_telemetry, org="Maturaprojekt", record=point8)
+
+def write_overtake(payload):
+    print("Writing overtake to InfluxDB")
+    overtake_count = payload["overtake_count"]
+    license_plate = payload["licence_plate"]
+
+    point1 = (
+        Point("total_overtakes")
+        .tag("drone", "1")
+        .field("count", overtake_count)
+    )
+
+    point2 = (
+        Point("License_Plate")
+        .tag("drone", "1")
+        .field("license_plate", license_plate)
+    )
+    write_api.write(bucket=bucket_overtakes, org="Maturaprojekt", record=point2)
+    write_api.write(bucket=bucket_overtakes, org="Maturaprojekt", record=point1)

@@ -1,15 +1,9 @@
 import json
-import subprocess
-from collections import defaultdict
-import cv2
-import numpy as np
-from ultralytics import YOLO
-import time
 import paho.mqtt.client as mqtt
-
+import Utils.find_ipv4_adress as ip
 
 # MQTT broker address and port
-broker_address = "localhost"
+broker_address = ip.useful_functions.get_ip_address()
 port = 1884
 
 topic23 = "Steuereinheit/video_stream"

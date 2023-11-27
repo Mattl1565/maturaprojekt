@@ -1,10 +1,9 @@
 import time
-from threading import Thread
-
 import cv2
 from djitellopy import Tello
 import paho.mqtt.client as mqtt
 import json
+import Utils.find_ipv4_adress as ip
 
 tello = Tello()
 tello.connect()
@@ -14,8 +13,7 @@ frame_read = tello.get_frame_read()
 
 connected = False
 
-
-broker_address = "10.22.253.0"
+broker_address = ip.useful_functions.get_ip_address()
 broker_port = 1884
 
 topic23 = "Steuereinheit/video_stream"
@@ -149,7 +147,6 @@ client.on_message = on_message
 client.on_connect = on_connect
 client.on_publish = on_publish
 
-#if(tello.connect() == True):
 print("Connecting to MQTT broker")
 client.connect(broker_address, broker_port, 60)
 

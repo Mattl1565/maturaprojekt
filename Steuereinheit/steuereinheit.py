@@ -1,135 +1,122 @@
-import json
-import threading
-import time
-from moviepy.editor import VideoFileClip, concatenate_videoclips
 import cv2
-import cv2 as cv
 import paho.mqtt.client as mqtt
 import numpy as np
-
 from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
+import Utils.find_ipv4_adress as ip
 
 received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
-
 video_writer = None
 
 # MQTT broker address and port
-broker_address = "localhost"  # Replace this with your broker's address if it's different
-port = 1884  # Default MQTT port
+broker_address = ip.useful_functions.get_ip_address()
+port = 1884
+#MQTT topics
+commands_to_drone_topic = "Steuereinheit/commands_to_drone"
+commands_to_ground_camera_topic = "Steuereinheit/commands_to_ground_camera"
+commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
+commands_to_licence_plate_ai_topic = "Steuereinheit/commands_to_licence_plate_ai"
 
-topic21 = "Steuereinheit/commands_to_drone"
-topic31 = "Steuereinheit/commands_to_ground_camera"
-topic41 = "Steuereinheit/commands_to_overtake_ai"
-topic51 = "Steuereinheit/commands_to_licence_plate_ai"
-topic61 = "Steuereinheit/InfluxDB"
-
-topic22 = "Steuereinheit/drone_telemetry"
-topic23 = "Steuereinheit/video_stream"
-topic24 = "Steuereinheit/stream_off"
-topic32 = "Steuereinheit/kennzeichen_foto"
-topic42 = "Steuereinheit/take_pic"
-topic43 = "Steuereinheit/drone_on"
-topic52 = "Steuereinheit/kennzeichen_string"
-
-topic100 = "Steuereinheit/test"
-
-# Message to be published
-message_to_licence_plate_ai = "Analyze now!"
-message_to_ground_cam = "Take a pic!"
+drone_telemetry_topic = "Steuereinheit/drone_telemetry"
+drone_stream_topic = "Steuereinheit/video_stream"
+drone_stream_off_topic = "Steuereinheit/stream_off"
+ground_camera_topic = "Steuereinheit/kennzeichen_foto"
+car_left_topic = "Steuereinheit/take_pic"
+drone_connected_topic = "Steuereinheit/drone_on"
+licence_plate_string_topic = "Steuereinheit/kennzeichen_string"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    client.subscribe(topic22)
-    client.subscribe(topic23)
-    client.subscribe(topic24)
-    client.subscribe(topic32)
-    client.subscribe(topic42)
-    client.subscribe(topic43)
-    client.subscribe(topic52)
-    client.subscribe(topic61)
-    #client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
+    client.subscribe(drone_telemetry_topic)
+    client.subscribe(drone_stream_topic)
+    client.subscribe(drone_stream_off_topic)
+    client.subscribe(ground_camera_topic)
+    client.subscribe(car_left_topic)
+    client.subscribe(drone_connected_topic)
+    client.subscribe(licence_plate_string_topic)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
-    if message.topic == topic22: #IF we recieve telemetry from drone
-        print(message.payload.decode()) #THEN we print it out
+    if message.topic == drone_telemetry_topic: #IF we recieve telemetry from drone
+        handle_telemetry(message) #THEN we handle it
 
-    if message.topic == topic23: #IF we recieve video from drone
-        global video_writer
-        print("Recieved jpg from drone")
-        nparr = np.frombuffer(message.payload, np.uint8, count=-1)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if message.topic == drone_stream_topic: #IF we recieve video from drone
+        handle_video(message) #THEN we handle it
 
-        if video_writer is None:
-            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            video_writer = cv2.VideoWriter(received_video_path, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
+    if message.topic == drone_stream_off_topic: #IF the drone stopped sending video
+        handle_video_stop(message) #THEN we handle it
 
-        video_writer.write(frame)
+    if message.topic == ground_camera_topic:   #IF we recieve picture from ground cam
+        handle_ground_camera(message) #THEN we handle it
 
-    if message.topic == topic24:
-        print("Video finished!")
-        client.publish(topic41, AICommands.check_for_overtake(received_video_path), qos=1)
-        video_writer.release()
+    if message.topic == car_left_topic: #IF a car left the street
+        handle_car_leaving_street(message) #THEN we handle it
 
-    if message.topic == topic32:   #IF we recieve picture from ground cam
-        image_data = np.frombuffer(message.payload, dtype=np.uint8)
-        image = cv.imdecode(image_data, cv.IMREAD_COLOR)
-        cv.imshow("Nummernschild", image)
-        cv.waitKey(0)
-        cv.destroyAllWindows()   #THEN we display it
-        print("Officer, we recieved a pic!")
-
-    if message.topic == topic42: #IF a car left the street
-        print(message.payload.decode())  # THEN we print it out
-
-    if message.topic == topic43: ##IF Drone connected to MQTT
-        telemetry_thread = threading.Thread(target=send_telemetry, args=(client,))
-        telemetry_thread.start()
+    if message.topic == drone_connected_topic: ##IF Drone connected to MQTT
         tag_der_offenen_tuer()
-        #client.publish(topic21, TelloCommands.takeoff())
-        #client.publish(topic21, TelloCommands.do_flip())
-        #client.publish(topic21, TelloCommands.land())
-        #client.publish(topic21, TelloCommands.get_camera_feed())
-        telemetry_thread.join()
 
-    if message.topic == topic52: #IF we recieve the string of the licence plate
-        print(message.payload.decode()) #THEN we print it out
+    if message.topic == licence_plate_string_topic: #IF we recieve the string of the licence plate
+        handle_licence_plate_string(message) #THEN we handle it
 
 
 def on_publish(client, userdata, mid):
     print("Publishing!")
 
 def tag_der_offenen_tuer():
-    client.publish(topic21, TelloCommands.takeoff())
-    client.publish(topic21, TelloCommands.move_up(40))
-    client.publish(topic21, TelloCommands.move_forward(100))
-    client.publish(topic21, TelloCommands.move_back(100))
-    client.publish(topic21, TelloCommands.land())
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
+    client.publish(commands_to_drone_topic, TelloCommands.takeoff())
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
+    client.publish(commands_to_drone_topic, TelloCommands.move_up(40))
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
+    client.publish(commands_to_drone_topic, TelloCommands.move_forward(100))
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
+    client.publish(commands_to_drone_topic, TelloCommands.move_back(100))
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
+    client.publish(commands_to_drone_topic, TelloCommands.land())
+def handle_telemetry(message):
+    print(message.payload.decode())
+def handle_video(message):
+    global video_writer
+    print("Recieved jpg from drone")
+    nparr = np.frombuffer(message.payload, np.uint8, count=-1)
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
+    if video_writer is None:
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(received_video_path, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
 
-# Create an MQTT client instance
+    video_writer.write(frame)
+
+def handle_video_stop(message):
+    print("Video finished!")
+    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(received_video_path), qos=1)
+    video_writer.release()
+
+def handle_ground_camera(message):
+    image_data = np.frombuffer(message.payload, dtype=np.uint8)
+    image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    # cv.imshow("Nummernschild", image)
+    # cv.waitKey(0)
+    # cv.destroyAllWindows()   #THEN we display it
+    print("Officer, we recieved a pic!")
+
+def handle_car_leaving_street(message):
+    print(message.payload.decode())
+
+def handle_licence_plate_string(message):
+    print(message.payload.decode())
+
 client = mqtt.Client("Steuereinheit")
 
-# Set the callback functions
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_publish = on_publish
 
-# Connect to the broker
 client.connect(broker_address, port, 60)
 
-# Loop to maintain the connection and handle messages
 client.loop_start()
 
-def send_telemetry(client):
-    client.publish(topic21, TelloCommands.get_telemetry())
-
-# Example: Wait for user input to exit the script
 input("Press Enter to exit...\n")
 
-# Stop the MQTT client loop and disconnect from the broker
-#client.loop_stop()
-#client.disconnect()
 

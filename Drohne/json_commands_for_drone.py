@@ -1,6 +1,5 @@
 import json
 
-
 class TelloCommands:
     @staticmethod
     def move_up(x):

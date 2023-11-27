@@ -2,12 +2,11 @@ import time
 import cv2
 import numpy as np
 import paho.mqtt.client as mqtt
+import Utils.find_ipv4_adress as ip
 
 # MQTT broker address and port
-broker_address = "localhost"  # Replace this with your broker's address if it's different
+broker_address = ip.useful_functions.get_ip_address()
 port = 1884  # Default MQTT port
-
-# Topic to which you want to subscribe for the video stream
 
 topic42 = "Steuereinheit/take_pic"
 topic23 = "Steuereinheit/video_stream"
@@ -42,8 +41,6 @@ def on_message(client, userdata, message):
 
     # Write the frame to the video file
     video_writer.write(frame)
-
-
 
 
 # Create an MQTT client with increased max_inflight_messages_set
