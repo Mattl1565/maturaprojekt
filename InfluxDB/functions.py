@@ -4,12 +4,12 @@ import influxdb_client
 from influxdb_client import Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-#token_laptop = "GxIxdhdibmd-xgl_0uK996cw4ta_9M0INkrjVFqbLILccQIfFUYatmcanJG_7ARcbL0qTifpHO0DJg2-O_ZxBg=="
-token_pc = "QV9n46Bpf4I8IUeiwi746ZR2zQwJdDE0FVLNfav3TnNTy2_-TOzO0rVyJxnC2HR4IUTgZuQqQAMLkKJkNV_x2Q=="
+token_laptop = "fhRnIAFrxsfcIHc3rmzmb4aCw1k9nWCCkx4JCVK4A5XkNh_6Fe6FIOK1ji6zh4ltmvvhhneK6F0wrXz3ThMZsw=="
+#token_pc = "QV9n46Bpf4I8IUeiwi746ZR2zQwJdDE0FVLNfav3TnNTy2_-TOzO0rVyJxnC2HR4IUTgZuQqQAMLkKJkNV_x2Q=="
 org = "Maturaprojekt"
 url = "http://localhost:8086"
 
-write_client = influxdb_client.InfluxDBClient(url=url, token=token_pc, org=org)
+write_client = influxdb_client.InfluxDBClient(url=url, token=token_laptop, org=org)
 
 bucket = "drone_telemetry"
 

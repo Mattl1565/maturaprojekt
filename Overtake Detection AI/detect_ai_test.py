@@ -60,7 +60,7 @@ while cap.isOpened():
         print(f'YOLOv8 imgsz: {imgsz}')
 
         # Run YOLOv8 tracking on the frame, persisting tracks between frames
-        results = model.track(source = frame, persist=True, conf=0.001)
+        results = model.track(source = frame, persist=True)
         # Get the boxes and track IDs
         try:
             boxes = results[0].boxes.xywh.cpu()

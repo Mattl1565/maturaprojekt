@@ -6,16 +6,16 @@ from djitellopy import Tello
 import paho.mqtt.client as mqtt
 import json
 
-#tello = Tello()
-#tello.connect()
+tello = Tello()
+tello.connect()
 
-#tello.streamon()
-#frame_read = tello.get_frame_read()
+tello.streamon()
+frame_read = tello.get_frame_read()
 
 connected = False
 
 
-broker_address = "localhost"
+broker_address = "10.22.253.0"
 broker_port = 1884
 
 topic23 = "Steuereinheit/video_stream"
@@ -65,6 +65,10 @@ def on_message(client, userdata, message):
             elif command == "get_battery":
                 tello.get_battery()
                 print("Battery:", tello.get_battery())
+            elif command == "do_flip":
+                tello.flip_left()
+                tello.flip_right()
+                print("Doing a flip!")
             elif command == "get_single_pic":
                 #cv2.imwrite("/TelloStuff/tello_output.jpg", frame_read.frame)
                 with open("/TelloStuff/tello_output.jpg", "rb") as file:

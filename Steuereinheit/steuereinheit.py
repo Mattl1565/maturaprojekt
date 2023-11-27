@@ -86,13 +86,14 @@ def on_message(client, userdata, message):
 
     if message.topic == topic43: ##IF Drone connected to MQTT
 
-        #i = 0
-        #while(i < 20):
-        #    client.publish(topic21, TelloCommands.get_telemetry())
-        #    i = i+1
-        #client.publish(topic21, TelloCommands.takeoff())
-        #client.publish(topic21, TelloCommands.land())
-        client.publish(topic21, TelloCommands.get_camera_feed())
+        i = 0
+        client.publish(topic21, TelloCommands.takeoff())
+        #client.publish(topic21, TelloCommands.do_flip())
+        while(i < 20):
+            client.publish(topic21, TelloCommands.get_telemetry())
+            i = i+1
+        client.publish(topic21, TelloCommands.land())
+        #client.publish(topic21, TelloCommands.get_camera_feed())
 
     if message.topic == topic52: #IF we recieve the string of the licence plate
         print(message.payload.decode()) #THEN we print it out

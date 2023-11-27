@@ -8,17 +8,17 @@ import paho.mqtt.client as mqtt
 from InfluxDB.functions import write_telemetry
 
 
-broker_address = "10.0.0.17"
+broker_address = "localhost"
 broker_port = 1884
 topic42 = "Steuereinheit/drone_telemetry"
 topic61 = "Steuereinheit/InfluxDB"
 
-#token_laptop = "GxIxdhdibmd-xgl_0uK996cw4ta_9M0INkrjVFqbLILccQIfFUYatmcanJG_7ARcbL0qTifpHO0DJg2-O_ZxBg=="
-token_pc = "QV9n46Bpf4I8IUeiwi746ZR2zQwJdDE0FVLNfav3TnNTy2_-TOzO0rVyJxnC2HR4IUTgZuQqQAMLkKJkNV_x2Q=="
+token = "fhRnIAFrxsfcIHc3rmzmb4aCw1k9nWCCkx4JCVK4A5XkNh_6Fe6FIOK1ji6zh4ltmvvhhneK6F0wrXz3ThMZsw=="
+#token_pc = "QV9n46Bpf4I8IUeiwi746ZR2zQwJdDE0FVLNfav3TnNTy2_-TOzO0rVyJxnC2HR4IUTgZuQqQAMLkKJkNV_x2Q=="
 org = "Maturaprojekt"
 url = "http://localhost:8086"
 
-write_client = influxdb_client.InfluxDBClient(url=url, token=token_pc, org=org)
+write_client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
 
 bucket = "drone_telemetry"
 

@@ -63,9 +63,9 @@ class TelloCommands:
         return json_message
 
     @staticmethod
-    def do_360():
+    def do_flip():
         data = {
-            "command": "do_360"
+            "command": "do_flip"
         }
         json_message = json.dumps(data)
         return json_message
