@@ -10,8 +10,6 @@ topic31 = "Steuereinheit/commands_to_ground_camera"
 topic32 = "Steuereinheit/kennzeichen_foto"
 topic42 = "Steuereinheit/take_pic"
 
-topic100 = "Steuereinheit/test"
-
 image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
 
 
@@ -20,7 +18,6 @@ image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Image
 def on_connect(client, userdata, flags, rc):
     client.subscribe(topic31)
     client.subscribe(topic42)
-    client.subscribe(topic100)
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
 
 def on_message(client, userdata, message):

@@ -7,11 +7,14 @@ import Utils.find_ipv4_adress as ip
 
 received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 video_writer = None
+take_fake_inputs = False
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
 port = 1884
 #MQTT topics
+
+
 commands_to_drone_topic = "Steuereinheit/commands_to_drone"
 commands_to_ground_camera_topic = "Steuereinheit/commands_to_ground_camera"
 commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
@@ -34,6 +37,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
+    client.publish(commands_to_ground_camera_topic, take_fake_inputs, qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -67,7 +71,7 @@ def tag_der_offenen_tuer():
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
     client.publish(commands_to_drone_topic, TelloCommands.takeoff())
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
-    client.publish(commands_to_drone_topic, TelloCommands.move_up(40))
+    client.publish(commands_to_drone_topic, TelloCommands.move_up(80))
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
     client.publish(commands_to_drone_topic, TelloCommands.move_forward(100))
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
@@ -96,9 +100,10 @@ def handle_video_stop(message):
 def handle_ground_camera(message):
     image_data = np.frombuffer(message.payload, dtype=np.uint8)
     image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-    # cv.imshow("Nummernschild", image)
-    # cv.waitKey(0)
-    # cv.destroyAllWindows()   #THEN we display it
+    cv2.imwrite("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\kennzeichen_foto.jpg", image)
+    cv2.imshow("Nummernschild", image)
+    cv2.waitKey(5000)
+    cv2.destroyAllWindows()   #THEN we display it
     print("Officer, we recieved a pic!")
 
 def handle_car_leaving_street(message):
@@ -118,5 +123,3 @@ client.connect(broker_address, port, 60)
 client.loop_start()
 
 input("Press Enter to exit...\n")
-
-

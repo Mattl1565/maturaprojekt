@@ -22,7 +22,7 @@ def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
     if message.topic == topic32:
         #car_licence_plate = message_to_steuereinheit = analzye(...)
-        json_message = json_message_to_influx(5, "SL623JM")
+        json_message = json_message_to_influx("SL623JM")
         client.publish(topic52, json_message, qos=1)
 
 def json_message_to_influx(overtake_count, licence_plate):

@@ -8,8 +8,8 @@ import Utils.find_ipv4_adress as ip
 tello = Tello()
 tello.connect()
 
-tello.streamon()
-frame_read = tello.get_frame_read()
+#tello.streamon()
+#frame_read = tello.get_frame_read()
 
 connected = False
 
