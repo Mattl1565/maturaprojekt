@@ -98,6 +98,10 @@ def on_message(client, userdata, message):
                 print("FINISHED SENDING!")
                 cap.release()
 
+            elif command == "get_height":
+                client.publish(drone_telemetry_topic, json.dumps({
+                    "height": tello.get_height(),
+                }), qos=1)
 
             elif command == "get_telemetry":
                 tello.get_battery()
@@ -109,7 +113,7 @@ def on_message(client, userdata, message):
                 tello.get_flight_time()
                 tello.get_barometer()
 
-                time.sleep(1)  ##DELAY FOR INFLUX DB
+                time.sleep(1)  #DELAY FOR INFLUX DB
 
                 client.publish(drone_telemetry_topic, json.dumps({
                     "battery": tello.get_battery(),

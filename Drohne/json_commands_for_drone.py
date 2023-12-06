@@ -92,3 +92,11 @@ class TelloCommands:
         }
         json_message = json.dumps(data)
         return json_message
+
+    @staticmethod
+    def get_height():
+        data = {
+            "command": "get_height"
+        }
+        json_message = json.dumps(data)
+        return json_message
