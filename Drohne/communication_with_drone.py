@@ -16,11 +16,11 @@ connected = False
 broker_address = ip.useful_functions.get_ip_address()
 broker_port = 1884
 
-topic23 = "Steuereinheit/video_stream"
-topic24 = "Steuereinheit/stream_off"
-topic41 = "Steuereinheit/commands_to_drone"
-topic42 = "Steuereinheit/drone_telemetry"
-topic43 = "Steuereinheit/drone_on"
+video_stream_topic = "Steuereinheit/video_stream"
+stream_off_topic = "Steuereinheit/stream_off"
+commands_to_drone_topic = "Steuereinheit/commands_to_drone"
+drone_telemetry_topic = "Steuereinheit/drone_telemetry"
+drone_on_topic = "Steuereinheit/drone_on"
 
 
 #EINGESCHLEUSTES VIDEO
@@ -30,11 +30,11 @@ cap = cv2.VideoCapture(video_path)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    client.subscribe(topic41)
-    client.publish(topic43, "Tello in da house", qos=0)
+    client.subscribe(commands_to_drone_topic)
+    client.publish(drone_on_topic, "Tello in da house", qos=0)
 
 def on_message(client, userdata, message):
-    if(message.topic == topic41):
+    if(message.topic == commands_to_drone_topic):
         payload = json.loads(message.payload.decode('utf-8'))
         if "command" in payload:
             command = payload["command"]
@@ -56,6 +56,7 @@ def on_message(client, userdata, message):
                 print("Moving down by ", distance)
             elif command == "takeoff":
                 tello.takeoff()
+                client.publish(video_stream_topic, "Tello taking off", qos=0)
                 print("Taking off!")
             elif command == "land":
                 tello.land()
@@ -71,7 +72,7 @@ def on_message(client, userdata, message):
                 #cv2.imwrite("/TelloStuff/tello_output.jpg", frame_read.frame)
                 with open("/TelloStuff/tello_output.jpg", "rb") as file:
                     image_data = file.read()
-                    client.publish(topic23, image_data, qos=1)
+                    client.publish(video_stream_topic, image_data, qos=1)
             elif command == "get_camera_feed":
                 print("READING IN THE VIDEO!!!")
                 if not cap.isOpened():
@@ -89,11 +90,11 @@ def on_message(client, userdata, message):
                     _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), compression_quality])
                     data = buffer.tobytes()
                     print("Sending frame")
-                    client.publish(topic23, data, qos=0)
+                    client.publish(video_stream_topic, data, qos=0)
 
                     #time.sleep(0.1)
 
-                client.publish(topic24, "I am finished like CR7", qos=0)
+                client.publish(stream_off_topic, "I am finished like CR7", qos=0)
                 print("FINISHED SENDING!")
                 cap.release()
 
@@ -110,7 +111,7 @@ def on_message(client, userdata, message):
 
                 time.sleep(1)  ##DELAY FOR INFLUX DB
 
-                client.publish(topic42, json.dumps({
+                client.publish(drone_telemetry_topic, json.dumps({
                     "battery": tello.get_battery(),
                     "temperature": (tello.get_temperature() - 32) * 5/9,
                     "speed_x": tello.get_speed_x(),

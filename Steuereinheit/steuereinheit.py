@@ -5,9 +5,11 @@ from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
 import Utils.find_ipv4_adress as ip
 
-received_video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+
 video_writer = None
-take_fake_inputs = False
+take_fake_video_input = True
+take_fake_photo_input = True
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
@@ -37,8 +39,6 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
-    #client.publish(commands_to_ground_camera_topic, take_fake_inputs, qos=0)
-    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"), qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -82,21 +82,27 @@ def tag_der_offenen_tuer():
 def handle_telemetry(message):
     print(message.payload.decode())
 def handle_video(message):
-    global video_writer
-    print("Recieved jpg from drone")
-    nparr = np.frombuffer(message.payload, np.uint8, count=-1)
-    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if(take_fake_video_input):   #FAKE VIDEO INPUT CAME IN SO WE START THE ANALYSIS
+        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path), qos=0)
+    else:
+        global video_writer
+        print("Recieved jpg from drone")
+        nparr = np.frombuffer(message.payload, np.uint8, count=-1)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if video_writer is None:
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            video_writer = cv2.VideoWriter(video_path, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
 
-    if video_writer is None:
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        video_writer = cv2.VideoWriter(received_video_path, fourcc, 30.0, (frame.shape[1], frame.shape[0]))
-
-    video_writer.write(frame)
+        video_writer.write(frame)
 
 def handle_video_stop(message):
-    print("Video finished!")
-    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(received_video_path), qos=1)
-    video_writer.release()
+    if(take_fake_video_input):
+        print("Detection finished!")
+
+    else:
+        print("Video finished!")
+        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path), qos=1)
+        video_writer.release()
 
 def handle_ground_camera(message):
     image_data = np.frombuffer(message.payload, dtype=np.uint8)
@@ -108,10 +114,10 @@ def handle_ground_camera(message):
     print("Officer, we recieved a pic!")
 
 def handle_car_leaving_street(message):
-    print(message.payload.decode())
+    print("RasPi should be taking a pic now!")
 
 def handle_licence_plate_string(message):
-    print(message.payload.decode())
+    print("License Plate String: " + message.payload.decode())
 
 client = mqtt.Client("Steuereinheit")
 
