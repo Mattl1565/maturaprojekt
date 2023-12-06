@@ -51,8 +51,6 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
     Y_THRESHOLD = 1
     ListOfCarsAtFirstSight = {}
 
-    client.publish(take_picture_topic, "Fucking donut", qos=0)
-
     # test for direction detection
     VisibleCarsBeforeUpdate = []
 
@@ -290,7 +288,12 @@ def on_message(client, userdata, message):
                 overtaking_thread_handler.start()
 
 def on_publish(client, userdata, mid):
-    print("Publishing!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+
 
 client = mqtt.Client("Overtake Detection AI")
 
