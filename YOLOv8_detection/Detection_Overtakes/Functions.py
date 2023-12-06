@@ -40,4 +40,13 @@ def get_direction(track_id, list_cars):
 def get_overtaking(track_id, CarDict):
     return CarDict[track_id].getOvertaking()
 
+def get_id(track_id, CarDict):
+    return CarDict[track_id].getID()
+
+def check_if_passed_line(car, line_y):
+    print("car.y[0]: " + str(car.y[0]))
+    if car.y[0] > line_y:
+        return True
+    else:
+        return False
 

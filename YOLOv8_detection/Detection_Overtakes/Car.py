@@ -7,6 +7,7 @@ class Car:
         self.direction = 2
         self.overtaking = False
         self.screenTime = 0
+        self.busted = False
 
     def getScreenTime(self):
         return self.screenTime
@@ -34,6 +35,8 @@ class Car:
     def getOvertaking(self):
         return self.overtaking
 
+    def getBusted(self):
+        return self.busted
     def setScreenTime(self, screenTime):
         self.screenTime = screenTime
 
@@ -53,8 +56,8 @@ class Car:
     def setDirection(self, direction):
         self.direction = direction
 
-
-
+    def setBusted(self, busted):
+        self.busted = busted
     def __str__(self):
         if(self.direction == 0):
             return "x: " + str(self.x) + " y: " + str(self.getY()) + " id: " + str(self.id) + " direction: " + "down"
