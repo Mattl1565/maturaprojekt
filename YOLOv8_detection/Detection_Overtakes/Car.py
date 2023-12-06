@@ -3,11 +3,14 @@ class Car:
         self.screenTime = 1
         self.y = y
         self.x = x
+        self.old_y = 0
+        self.old_x = 0
         self.id = id
         self.direction = 2
         self.overtaking = False
         self.screenTime = 0
         self.busted = False
+        self.speed:int = 0
 
     def getScreenTime(self):
         return self.screenTime
@@ -37,6 +40,16 @@ class Car:
 
     def getBusted(self):
         return self.busted
+
+    def getSpeed(self):
+        return self.speed
+
+    def getOldX(self):
+        return self.old_x
+
+    def getOldY(self):
+        return self.old_y
+
     def setScreenTime(self, screenTime):
         self.screenTime = screenTime
 
@@ -50,6 +63,12 @@ class Car:
         self.y = y
         self.screenTime += 1
 
+    def setOldX(self, old_x):
+        self.old_x = old_x
+
+    def setOldY(self, old_y):
+        self.old_y = old_y
+
     def setID(self, id):
         self.id = id
 
@@ -58,6 +77,10 @@ class Car:
 
     def setBusted(self, busted):
         self.busted = busted
+
+    def setSpeed(self, speed):
+        self.speed = speed
+
     def __str__(self):
         if(self.direction == 0):
             return "x: " + str(self.x) + " y: " + str(self.getY()) + " id: " + str(self.id) + " direction: " + "down"

@@ -12,7 +12,8 @@ take_fake_video_input = True
 take_fake_photo_input = True
 
 global drone_height
-drone_height = 0
+drone_height:int = 7
+drone_angle = 38
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
@@ -42,6 +43,7 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
+    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height, drone_angle), qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -83,14 +85,14 @@ def tag_der_offenen_tuer():
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
     client.publish(commands_to_drone_topic, TelloCommands.land())
 def handle_telemetry(message):
-    global drone_height
-    drone_height = message.payload["height"]
+    #global drone_height
+    #drone_height = message.payload["height"]
     print(message.payload.decode())
 
 def handle_video(message):
     if(take_fake_video_input):   #FAKE VIDEO INPUT CAME IN SO WE START THE ANALYSIS
-        client.publish(commands_to_drone_topic, TelloCommands.get_height(), qos=0)
-        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height), qos=0)
+        client.publish(commands_to_drone_topic, TelloCommands.get_height(), qos=0) #getHEIGHT
+        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height, drone_angle), qos=0)
     else:
         global video_writer
         print("Recieved jpg from drone")
@@ -121,6 +123,7 @@ def handle_ground_camera(message):
     print("Officer, we recieved a pic!")
 
 def handle_car_leaving_street(message):
+    print(message.payload.decode())
     print("RasPi should be taking a pic now!")
 
 def handle_licence_plate_string(message):
@@ -134,6 +137,4 @@ client.on_publish = on_publish
 
 client.connect(broker_address, port, 60)
 
-client.loop_start()
-
-input("Press Enter to exit...\n")
+client.loop_forever()

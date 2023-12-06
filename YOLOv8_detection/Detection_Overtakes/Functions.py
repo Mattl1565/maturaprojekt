@@ -50,3 +50,5 @@ def check_if_passed_line(car, line_y):
     else:
         return False
 
+def get_speed(track_id, CarDict):
+    return CarDict[track_id].getSpeed()

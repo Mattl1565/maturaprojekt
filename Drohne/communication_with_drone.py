@@ -5,8 +5,8 @@ import paho.mqtt.client as mqtt
 import json
 import Utils.find_ipv4_adress as ip
 
-tello = Tello()
-tello.connect()
+#tello = Tello()
+#tello.connect()
 
 #tello.streamon()
 #frame_read = tello.get_frame_read()
