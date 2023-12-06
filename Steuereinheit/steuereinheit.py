@@ -11,6 +11,9 @@ video_writer = None
 take_fake_video_input = True
 take_fake_photo_input = True
 
+global drone_height
+drone_height = 0
+
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
 port = 1884
@@ -80,10 +83,14 @@ def tag_der_offenen_tuer():
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
     client.publish(commands_to_drone_topic, TelloCommands.land())
 def handle_telemetry(message):
+    global drone_height
+    drone_height = message.payload["height"]
     print(message.payload.decode())
+
 def handle_video(message):
     if(take_fake_video_input):   #FAKE VIDEO INPUT CAME IN SO WE START THE ANALYSIS
-        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path), qos=0)
+        client.publish(commands_to_drone_topic, TelloCommands.get_height(), qos=0)
+        client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height), qos=0)
     else:
         global video_writer
         print("Recieved jpg from drone")
