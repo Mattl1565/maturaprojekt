@@ -1,4 +1,6 @@
 import json
+import threading
+
 import paho.mqtt.client as mqtt
 from ultralytics import YOLO
 from YOLOv8_detection.Detection_Overtakes.Car import Car
@@ -7,23 +9,25 @@ from collections import defaultdict
 import numpy as np
 import Utils.find_ipv4_adress as ip
 import cv2
-import threading
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
 port = 1884
 
-topic23 = "Steuereinheit/video_stream"
-topic41 = "Steuereinheit/commands_to_overtake_ai"
+video_stream_topic = "Steuereinheit/video_stream"
+commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
 take_picture_topic = "Steuereinheit/take_pic"
 
 
-def run_tracker_in_thread(video_path, model, file_index):
+def run_overtake_detection(video_path, model, file_index):
     cap = cv2.VideoCapture(video_path)
+    print(video_path)
     model.fuse()
     # Store the track history
     track_history = defaultdict(lambda: [])
 
+    line_start = (400, 900)
+    line_end = (1600, 900)
     # initialize the lists for the cars
     CarDict = {}
     AllCars = []
@@ -43,8 +47,10 @@ def run_tracker_in_thread(video_path, model, file_index):
 
     overtakes_down = 0
     overtakes_up = 0
+    current_overtaking_car_count = 0
     tempVariableForFirstIteration = 0
 
+    publish_flag = False
     # define a scaling factor
     scaling_factor = 1
 
@@ -66,7 +72,7 @@ def run_tracker_in_thread(video_path, model, file_index):
             print(f'YOLOv8 imgsz: {imgsz}')
 
             # Run YOLOv8 tracking on the frame, persisting tracks between frames
-            results = model.track(source=frame, persist=True, tracker = "bytetrack.yaml")
+            results = model.track(source=frame, persist=True)
             # Get the boxes and track IDs
             try:
                 boxes = results[0].boxes.xywh.cpu()
@@ -112,11 +118,9 @@ def run_tracker_in_thread(video_path, model, file_index):
             # Check if a Car took over
             if not func.isSortedDown(VisibleCars_down):
                 overtakes_up = overtakes_up + 1
-                client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
 
             if not func.isSortedUp(VisibleCars_up):
                 overtakes_down = overtakes_down + 1
-                client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
 
             VisibleCarsBeforeUpdate = list(VisibleCars)
 
@@ -161,9 +165,15 @@ def run_tracker_in_thread(video_path, model, file_index):
             print("----------------------------------------------------------------")
             for car in VisibleCars_down:
                 print(str(car))
+                if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
+                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
+                    car.setBusted(True)
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
             for car in VisibleCars_up:
                 print(str(car))
+                if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
+                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
+                    car.setBusted(True)
             print("----------------------------------------------------------------")
             print("Overtakes_UP: " + str(overtakes_up))
             print("Overtakes_DOWN: " + str(overtakes_down))
@@ -208,6 +218,8 @@ def run_tracker_in_thread(video_path, model, file_index):
                 cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100),
                             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
 
+                cv2.line(annotated_frame, line_start, line_end, (255, 255, 0), thickness= 5)
+
             annotated_frame = cv2.resize(annotated_frame, (1080, 720))
             # Display the annotated frame
             cv2.imshow("Overtake detection assisted by YOLOv8", annotated_frame)
@@ -222,49 +234,43 @@ def run_tracker_in_thread(video_path, model, file_index):
     # Release the video capture object and close the display window
     cap.release()
 
-model1 = YOLO('yolov8n.pt')
-video_file1 = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
-tracker_thread1 = threading.Thread(target=run_tracker_in_thread, args=(video_file1, model1, 1),
-                                   daemon=True)
-
-tracker_thread1.start()
+def overtaking_thread(video_file1):
+    model1 = YOLO('yolov8n.pt')
+    run_overtake_detection(video_file1, model1, 1)
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    client.subscribe(topic23)
-    client.subscribe(topic41)
-    print("Overtake Detection started!")
+    client.subscribe(video_stream_topic)
+    client.subscribe(commands_to_overtake_ai_topic)
 
 
 # Callback function to handle message reception
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
-    if(message.topic == topic41):
+    if(message.topic == commands_to_overtake_ai_topic):
         payload = json.loads(message.payload.decode('utf-8'))
         if "command" in payload:
             command = payload["command"]
             if command == "check_for_overtake":
-                #video_path = payload.get("video_path", 0)
+                video_path = payload.get("video_path", 0)
                 print("Overtake Detection started!")
                 #START DETECTION
+                overtaking_thread_handler = threading.Thread(target=overtaking_thread(video_path))
+                overtaking_thread_handler.start()
 
+def on_publish(client, userdata, mid):
+    print("Publishing!")
 
 client = mqtt.Client("Overtake Detection AI")
 
 # Set the callback functions
 client.on_connect = on_connect
 client.on_message = on_message
+client.on_publish = on_publish
 
 # Connect to the MQTT broker
 client.connect(broker_address, port, keepalive=120)
 
-
 # Loop to maintain the connection and handle messages
-client.loop_start()
-
-tracker_thread1.join()
-
-input("Press Enter to exit...\n")
-
-
+client.loop_forever()

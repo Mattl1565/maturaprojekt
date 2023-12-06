@@ -37,7 +37,8 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
-    client.publish(commands_to_ground_camera_topic, take_fake_inputs, qos=0)
+    #client.publish(commands_to_ground_camera_topic, take_fake_inputs, qos=0)
+    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"), qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
