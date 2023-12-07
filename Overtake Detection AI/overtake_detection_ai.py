@@ -9,7 +9,6 @@ from collections import defaultdict
 import numpy as np
 import Utils.find_ipv4_adress as ip
 import cv2
-from overtake_checking import *
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
@@ -39,7 +38,7 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
 
     angle_in_radians = np.radians(drone_angle)
 
-    distance_covered = drone_height / np.arccos(angle_in_radians)
+    distance_covered = drone_height * np.tan(angle_in_radians)
 
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("drone_height: " + str(drone_height))
@@ -65,7 +64,6 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
     publish_flag = False
     # define a scaling factor
     scaling_factor = 1
-
     # Loop through the video frames
     while cap.isOpened():
         # Read a frame from the video
@@ -110,7 +108,8 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
                     car.setX(x)
                     y_arr = [1]
                     y_arr[0] = y
-                    car.setY(y_arr)
+                    car.setTime(current_time_ms)
+                    car.setY(y_arr, pixel_per_meter)
                 else:
                     x, y, w, h = box
                     x = x.numpy()
@@ -141,12 +140,7 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
             # Update VisibleCars list with visible cars
             VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
 
-            #Refresh the "Old" Car Values within all Car objects:
-            for car in VisibleCarsBeforeUpdate:
-                for car_act in VisibleCars:
-                    if car.getID() == car_act.getID():
-                        car_act.setOldX(car.getX())
-                        car_act.setOldY(car.getY())
+
 
             # Check if a car changed direction
             # if (visible cars vorher < visible cars nachher) -> auto fährt nach unten

@@ -5,15 +5,15 @@ from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
 import Utils.find_ipv4_adress as ip
 
-video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 
 video_writer = None
 take_fake_video_input = True
 take_fake_photo_input = True
 
 global drone_height
-drone_height:int = 7
-drone_angle = 38
+drone_height = 4
+drone_angle = 70
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
