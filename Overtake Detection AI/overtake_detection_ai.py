@@ -1,5 +1,6 @@
 import json
 import threading
+import time
 import paho.mqtt.client as mqtt
 from ultralytics import YOLO
 from YOLOv8_detection.Detection_Overtakes.Car import Car
@@ -8,6 +9,7 @@ from collections import defaultdict
 import numpy as np
 import Utils.find_ipv4_adress as ip
 import cv2
+from overtake_checking import *
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
@@ -18,7 +20,7 @@ commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
 take_picture_topic = "Steuereinheit/take_pic"
 
 
-def run_overtake_detection(video_path, model, drone_height, drone_angle, file_index):
+def run_overtake_detection(client, video_path, model, drone_height, drone_angle, file_index):
 
     cap = cv2.VideoCapture(video_path)
     print(video_path)
@@ -185,7 +187,6 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
             for car in VisibleCars_down:
                 print(str(car))
                 if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
-                    print("LORD HAVE MERCY I'M ABOUT TO BUUUUUUUST")
                     client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
                     print("ERRGTRGEGEGEGREWERGEWGRGEWRG")
                     car.setBusted(True)
@@ -194,7 +195,6 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
                 print(str(car))
 
                 if car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False:
-                    print("LORD HAVE MERCY I'M ABOUT TO BUUUUUUUST")
                     client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
                     print("Gorbtchow")
                     car.setBusted(True)
@@ -263,10 +263,24 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
     # Release the video capture object and close the display window
     cap.release()
 
-def overtaking_thread(video_file1, drone_height, drone_angle):
+
+def overtaking_thread(client, video_file1, drone_height, drone_angle):
     model1 = YOLO('yolov8n.pt')
-    client.publish(take_picture_topic, "wank wank" , qos=1)
-    run_overtake_detection(video_file1, model1, drone_height, drone_angle, 1)
+    run_overtake_detection(client, video_file1, model1, drone_height, drone_angle, 1)
+
+def mqtt_thread():
+    client = mqtt.Client("Overtake Detection AI", clean_session=True, userdata=None)
+
+    # Set the callback functions
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.on_publish = on_publish
+
+    # Connect to the MQTT broker
+    client.connect(broker_address, port, keepalive=120)
+
+    # Start the MQTT loop
+    client.loop_forever()
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
@@ -275,7 +289,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 # Callback function to handle message reception
-def on_message(_client, userdata, message):
+def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
     if(message.topic == commands_to_overtake_ai_topic):
@@ -288,13 +302,10 @@ def on_message(_client, userdata, message):
                 drone_height = payload.get("height", 0)
                 drone_angle = payload.get("angle", 0)
 
-                model1 = YOLO('yolov8n.pt')
-                client.publish(take_picture_topic, "wank wank", qos=1)
-                run_overtake_detection(video_path, model1, drone_height, drone_angle, 1)
-                #START DETECTION
-                #overtaking_thread_handler = threading.Thread(target=overtaking_thread(video_path, drone_height, drone_angle))
-                #overtaking_thread_handler.start()
-                #overtaking_thread_handler.join()
+                overtake_thread = threading.Thread(target=overtaking_thread, args=(client, video_path, drone_height, drone_angle), daemon=True)
+                overtake_thread.start()
+
+
 
 def on_publish(client, userdata, mid):
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -304,15 +315,20 @@ def on_publish(client, userdata, mid):
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
-client = mqtt.Client("Overtake Detection AI")
 
-# Set the callback functions
-client.on_connect = on_connect
-client.on_message = on_message
-client.on_publish = on_publish
+# Start the MQTT thread
+mqtt_thread = threading.Thread(target=mqtt_thread, daemon=True)
+mqtt_thread.start()
 
-# Connect to the MQTT broker
-client.connect(broker_address, port, keepalive=120)
+# Wait for a moment to ensure the MQTT thread has connected
+time.sleep(2)
 
-# Loop to maintain the connection and handle messages
-client.loop_forever()
+# Keep the main thread alive
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    pass
+finally:
+    print("Exiting program.")
+

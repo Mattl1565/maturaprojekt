@@ -21,6 +21,7 @@ port = 1883
 #MQTT topics
 
 
+
 commands_to_drone_topic = "Steuereinheit/commands_to_drone"
 commands_to_ground_camera_topic = "Steuereinheit/commands_to_ground_camera"
 commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
