@@ -17,7 +17,7 @@ drone_angle = 38
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
-port = 1884
+port = 1883
 #MQTT topics
 
 

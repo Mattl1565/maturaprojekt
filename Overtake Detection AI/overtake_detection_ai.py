@@ -11,7 +11,7 @@ import cv2
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
-port = 1884
+port = 1883
 
 video_stream_topic = "Steuereinheit/video_stream"
 commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
@@ -19,6 +19,7 @@ take_picture_topic = "Steuereinheit/take_pic"
 
 
 def run_overtake_detection(video_path, model, drone_height, drone_angle, file_index):
+
     cap = cv2.VideoCapture(video_path)
     print(video_path)
     model.fuse()
@@ -186,14 +187,16 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
                 if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
                     print("LORD HAVE MERCY I'M ABOUT TO BUUUUUUUST")
                     client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
+                    print("ERRGTRGEGEGEGREWERGEWGRGEWRG")
                     car.setBusted(True)
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
             for car in VisibleCars_up:
                 print(str(car))
 
-                if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
+                if car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False:
                     print("LORD HAVE MERCY I'M ABOUT TO BUUUUUUUST")
                     client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
+                    print("Gorbtchow")
                     car.setBusted(True)
             print("----------------------------------------------------------------")
             print("Overtakes_UP: " + str(overtakes_up))
@@ -262,6 +265,7 @@ def run_overtake_detection(video_path, model, drone_height, drone_angle, file_in
 
 def overtaking_thread(video_file1, drone_height, drone_angle):
     model1 = YOLO('yolov8n.pt')
+    client.publish(take_picture_topic, "wank wank" , qos=1)
     run_overtake_detection(video_file1, model1, drone_height, drone_angle, 1)
 
 def on_connect(client, userdata, flags, rc):
@@ -271,7 +275,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 # Callback function to handle message reception
-def on_message(client, userdata, message):
+def on_message(_client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
     if(message.topic == commands_to_overtake_ai_topic):
@@ -283,9 +287,14 @@ def on_message(client, userdata, message):
                 print("Overtake Detection started!")
                 drone_height = payload.get("height", 0)
                 drone_angle = payload.get("angle", 0)
+
+                model1 = YOLO('yolov8n.pt')
+                client.publish(take_picture_topic, "wank wank", qos=1)
+                run_overtake_detection(video_path, model1, drone_height, drone_angle, 1)
                 #START DETECTION
-                overtaking_thread_handler = threading.Thread(target=overtaking_thread(video_path, drone_height, drone_angle))
-                overtaking_thread_handler.start()
+                #overtaking_thread_handler = threading.Thread(target=overtaking_thread(video_path, drone_height, drone_angle))
+                #overtaking_thread_handler.start()
+                #overtaking_thread_handler.join()
 
 def on_publish(client, userdata, mid):
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
