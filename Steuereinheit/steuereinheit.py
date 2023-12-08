@@ -1,9 +1,13 @@
+import threading
+
 import cv2
 import paho.mqtt.client as mqtt
 import numpy as np
 from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
 import Utils.find_ipv4_adress as ip
+from PIL import Image, ImageDraw, ImageFont
+import pygame
 
 video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 
@@ -44,7 +48,8 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
-    client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height, drone_angle), qos=0)
+    #client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height, drone_angle), qos=0)
+    client.publish(car_left_topic, "Take Pic!!!", qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -115,11 +120,27 @@ def handle_video_stop(message):
         video_writer.release()
 
 def handle_ground_camera(message):
+    pygame.init()
+    pygame.mixer.init()
+    pygame.mixer.music.load("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\busted_sound_effect.wav")
+
+    font_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\gta5.ttf"
     image_data = np.frombuffer(message.payload, dtype=np.uint8)
     image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
     cv2.imwrite("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\kennzeichen_foto.jpg", image)
-    cv2.imshow("Nummernschild", image)
-    cv2.waitKey(5000)
+    text = "Busted"
+    text_color = (255,255,255)
+    text_image = gta_busted_effect(text, font_path, 72, text_color)
+    opencv_image = cv2.cvtColor(np.array(text_image), cv2.COLOR_RGB2BGR)
+
+    gta_busted_image = cv2.resize(opencv_image, (image.shape[1], image.shape[0]))
+    alpha = 0.3
+    # Blend the images
+    blended_image = cv2.addWeighted(image, alpha, gta_busted_image, 1 - alpha, 0)
+    pygame.mixer.music.play()
+    cv2.imshow("Nummernschild", blended_image)
+    cv2.waitKey(7000)
+    pygame.mixer.music.stop()
     cv2.destroyAllWindows()   #THEN we display it
     print("Officer, we recieved a pic!")
 
@@ -129,6 +150,20 @@ def handle_car_leaving_street(message):
 
 def handle_licence_plate_string(message):
     print("License Plate String: " + message.payload.decode())
+
+def gta_busted_effect(text, font_path, font_size, text_color):
+    image = Image.new("RGB", (500, 500), color=(0, 0, 0))
+    draw = ImageDraw.Draw(image)
+    font = ImageFont.truetype(font_path, font_size)
+    draw.text((150, 200), text, font=font, fill=text_color)
+    return image
+
+def play_busted(file_path):
+
+    pygame.time.delay(7000)
+    pygame.mixer.music.stop()
+    pygame.quit()
+
 
 client = mqtt.Client("Steuereinheit")
 

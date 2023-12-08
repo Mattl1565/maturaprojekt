@@ -3,7 +3,7 @@ import Utils.find_ipv4_adress as ip
 # MQTT broker address and port
 
 broker_address = ip.useful_functions.get_ip_address()
-port = 1884  # Default MQTT port
+port = 1883  # Default MQTT port
 
 # Topic to which you want to publish the message
 topic31 = "Steuereinheit/commands_to_ground_camera"
