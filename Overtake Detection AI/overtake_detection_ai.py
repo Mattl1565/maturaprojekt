@@ -299,15 +299,12 @@ def on_message(client, userdata, message):
                 overtake_thread = threading.Thread(target=overtaking_thread, args=(client, video_path, drone_height, drone_angle), daemon=True)
                 overtake_thread.start()
 
-
-
 def on_publish(client, userdata, mid):
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-
 
 
 # Start the MQTT thread

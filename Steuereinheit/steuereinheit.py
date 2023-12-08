@@ -1,29 +1,20 @@
-import threading
-
+import time
 import cv2
 import paho.mqtt.client as mqtt
 import numpy as np
 from Drohne.json_commands_for_drone import TelloCommands
 from Steuereinheit.json_commands_for_ai import AICommands
 import Utils.find_ipv4_adress as ip
-from PIL import Image, ImageDraw, ImageFont
-import pygame
 
-video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
 video_writer = None
-take_fake_video_input = True
-take_fake_photo_input = True
 
-global drone_height
-drone_height = 4
-drone_angle = 70
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883
 #MQTT topics
-
 
 
 commands_to_drone_topic = "Steuereinheit/commands_to_drone"
@@ -38,6 +29,7 @@ ground_camera_topic = "Steuereinheit/kennzeichen_foto"
 car_left_topic = "Steuereinheit/take_pic"
 drone_connected_topic = "Steuereinheit/drone_on"
 licence_plate_string_topic = "Steuereinheit/kennzeichen_string"
+graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
@@ -48,8 +40,9 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(car_left_topic)
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
+    client.subscribe(graphical_steuereinheit_topic)
     #client.publish(commands_to_overtake_ai_topic, AICommands.check_for_overtake(video_path, drone_height, drone_angle), qos=0)
-    client.publish(car_left_topic, "Take Pic!!!", qos=0)
+    #client.publish(car_left_topic, "Take Pic!!!", qos=0)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
@@ -137,9 +130,9 @@ def handle_ground_camera(message):
     alpha = 0.3
     # Blend the images
     blended_image = cv2.addWeighted(image, alpha, gta_busted_image, 1 - alpha, 0)
-    pygame.mixer.music.play()
     cv2.imshow("Nummernschild", blended_image)
-    cv2.waitKey(7000)
+    pygame.mixer.music.play()
+    cv2.waitKey(0)
     pygame.mixer.music.stop()
     cv2.destroyAllWindows()   #THEN we display it
     print("Officer, we recieved a pic!")
