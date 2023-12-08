@@ -1,3 +1,5 @@
+import json
+import sys
 import threading
 import time
 
@@ -9,17 +11,7 @@ import Utils.find_ipv4_adress as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883
-
-start_detection = False
-take_fake_video_input = True
-take_fake_photo_input = True
-
-check_for_overtakes = False
-check_for_direction = False
-
-drone_height = 0
-drone_angle = 0
-
+graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
 
 pygame.init()
 
@@ -35,8 +27,7 @@ CYAN = (0, 100, 100)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-def main(client):
-
+def main():
 
     graphics = [("Low", "low"),
                 ("Medium", "medium"),
@@ -53,6 +44,9 @@ def main(client):
 
     def refreshSettings():
         print("funny mqtt")
+        settingsData = settings.get_input_data()
+        jsonMessage = json.dumps(settingsData)
+        client.publish(graphical_steuereinheit_topic, jsonMessage, qos=1)
 
     settings = pm.Menu(title="Einstellungen",
                        width=WIDTH,
@@ -83,6 +77,12 @@ def main(client):
         title="Store Drone Telemetry", default=False, toggleswitch_id="store_drone_telemetry")
     settings.add.toggle_switch(
         title="Store Criminal Offences", default=False, toggleswitch_id="store_criminal_offences")
+    settings.add.toggle_switch(
+        title="Take Fake Video Input", default=False, toggleswitch_id="fake_vid_input")
+    settings.add.toggle_switch(
+        title="Take Fake Picture Input", default=False, toggleswitch_id="fake_pic_input")
+    settings.add.toggle_switch(
+        title="GTA Effects", default=False, toggleswitch_id="gta_effects")
 
     # clock that displays the current date and time
     settings.add.clock(clock_format="%d-%m-%y %H:%M:%S",
@@ -91,12 +91,13 @@ def main(client):
 # 3 different buttons each with a different style and purpose
     settings.add.button(title="Print Settings", action=printSettings,
                         font_color=RED, background_color=WHITE)
-    settings.add.button(title=" Settings", action=refreshSettings,
+    settings.add.button(title="Publish Settings to MQTT", action=refreshSettings,
                         font_color=RED, background_color=WHITE)
-    settings.add.button(title="Restore Defaults", action=settings.reset_value,
-                        font_color=RED, background_color=WHITE)
+    #settings.add.button(title="Restore Defaults", action=settings.reset_value,
+    #                    font_color=RED, background_color=WHITE)
     settings.add.button(title="Return To Main Menu",
-                    action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
+                        action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
+
 
     controls = pm.Menu(title="Controls",
                    width=WIDTH,
@@ -114,7 +115,7 @@ def main(client):
         title="Land", default=False, toggleswitch_id="land")
 
     controls.add.button(title="Return To Main Menu",
-                    action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
+                        action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
 
     # Creating the main menu
     mainMenu = pm.Menu(title="Maturaprojekt",
@@ -141,12 +142,13 @@ def main(client):
     mainMenu.add.button(title="Exit", action=pm.events.EXIT,
                     font_color=WHITE, background_color=RED)
 
-    # Lets us loop the main menu on the screen
+
     mainMenu.mainloop(screen)
 
-def menu_start(client):
-    main(client)
+def menu_start():
+    main()
 def mqtt_thread():
+    global client
     client = mqtt.Client("Graphische Steuereinheit", clean_session=True, userdata=None)
 
     # Set the callback functions
@@ -161,10 +163,6 @@ def mqtt_thread():
     client.loop_forever()
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    menu_thread = threading.Thread(target=menu_start, args=(client,),
-                                       daemon=True)
-    menu_thread.start()
-    menu_thread.run()
 
 # Callback function to handle message reception
 def on_message(client, userdata, message):
@@ -178,20 +176,34 @@ def on_publish(client, userdata, mid):
     print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
 
-
-
 # Start the MQTT thread
 mqtt_thread = threading.Thread(target=mqtt_thread, daemon=True)
 mqtt_thread.start()
-mqtt_thread.run()
+
+menu_thread = threading.Thread(target=menu_start,
+                               daemon=True)
+
+
+menu_thread.run()
 # Wait for a moment to ensure the MQTT thread has connected
 time.sleep(2)
 
-# Keep the main thread alive
 try:
     while True:
-        time.sleep(1)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # Your other main loop code goes here
+
+        #pygame.display.flip()
+        pygame.time.Clock().tick(30)
+
 except KeyboardInterrupt:
     pass
 finally:
+    # Join the threads before exiting
+    menu_thread.join()
+    mqtt_thread.join()
     print("Exiting program.")

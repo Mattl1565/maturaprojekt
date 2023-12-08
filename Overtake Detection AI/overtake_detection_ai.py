@@ -19,7 +19,7 @@ commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
 take_picture_topic = "Steuereinheit/take_pic"
 
 
-def run_overtake_detection(client, video_path, model, drone_height, drone_angle, file_index):
+def run_overtake_detection(client, video_path, model, drone_height, drone_angle, overtaking_detection, direction_detection, speed_detection, file_index):
 
     cap = cv2.VideoCapture(video_path)
     print(video_path)
@@ -222,24 +222,28 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
                 speed = func.get_speed(track_id, CarDict)
 
                 # Add the direction label at the bottom of the box
-                direction_label = f"Direction: {direction}"
-                cv2.putText(annotated_frame, direction_label, (int(x - (w / 2)), int(y + (h / 2) + 40)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                if(direction_detection):
+                    direction_label = f"Direction: {direction}"
+                    cv2.putText(annotated_frame, direction_label, (int(x - (w / 2)), int(y + (h / 2) + 40)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 # Add the direction label at the bottom of the box
-                overtaking_label = f"Overtaking: {overtaking}"
-                cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
-                            cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
+                if(overtaking_detection):
+                    overtaking_label = f"Overtaking: {overtaking}"
+                    cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
+                                cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
                 id_label = f"ID: {id}"
                 cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
                             cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
-                speed_label = f"Speed: {speed} km/h"
-                cv2.putText(annotated_frame, speed_label, (int(x - (w / 2)), int(y + (h / 2)) - 20),
-                            cv2.FONT_ITALIC, 1.0, (153, 0, 255), 2)
+                if(speed_detection):
+                    speed_label = f"Speed: {speed} km/h"
+                    cv2.putText(annotated_frame, speed_label, (int(x - (w / 2)), int(y + (h / 2)) - 20),
+                                cv2.FONT_ITALIC, 1.0, (153, 0, 255), 2)
 
-                cv2.putText(annotated_frame, "Overtakes_UP: " + str(overtakes_up), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                            1.0, (255, 0, 255), 2)
-                cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
+                if(overtaking_detection):
+                    cv2.putText(annotated_frame, "Overtakes_UP: " + str(overtakes_up), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                                1.0, (255, 0, 255), 2)
+                    cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
 
                 cv2.line(annotated_frame, line_start, line_end, (255, 255, 0), thickness= 5)
 
@@ -258,9 +262,9 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
     cap.release()
 
 
-def overtaking_thread(client, video_file1, drone_height, drone_angle):
+def overtaking_thread(client, video_file1, drone_height, drone_angle,overtaking_detection, direction_detection, speed_detection):
     model1 = YOLO('yolov8n.pt')
-    run_overtake_detection(client, video_file1, model1, drone_height, drone_angle, 1)
+    run_overtake_detection(client, video_file1, model1, drone_height, drone_angle,overtaking_detection, direction_detection, speed_detection, 1)
 
 def mqtt_thread():
     client = mqtt.Client("Overtake Detection AI", clean_session=True, userdata=None)
@@ -295,8 +299,10 @@ def on_message(client, userdata, message):
                 print("Overtake Detection started!")
                 drone_height = payload.get("height", 0)
                 drone_angle = payload.get("angle", 0)
-
-                overtake_thread = threading.Thread(target=overtaking_thread, args=(client, video_path, drone_height, drone_angle), daemon=True)
+                overtaking_detection = payload.get("overtake_detection", 0)
+                direction_detection = payload.get("direction_detection", 0)
+                speed_detection = payload.get("speed_detection", 0)
+                overtake_thread = threading.Thread(target=overtaking_thread, args=(client, video_path, drone_height, drone_angle, overtaking_detection, direction_detection, speed_detection), daemon=True)
                 overtake_thread.start()
 
 def on_publish(client, userdata, mid):

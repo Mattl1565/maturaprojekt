@@ -7,20 +7,19 @@ broker_address = ip.useful_functions.get_ip_address()
 broker_port = 1884
 
 drone_telemetry_topic = "Steuereinheit/drone_telemetry"
-take_picture_topic = "Steuereinheit/take_pic"
 kennzeichen_string_topic = "Steuereinheit/kennzeichen_string"
-influx_db_topic = "Steuereinheit/InfluxDB"
+commands_to_influxdb = "Steuereinheit/commands_to_influxdb"
+store_car_data_topic = "Steuereinheit/store_car_data"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
-    client.subscribe(drone_telemetry_topic)
     client.subscribe(kennzeichen_string_topic)
-    client.subscribe(take_picture_topic)
-    client.publish(influx_db_topic, "MQTT-Connection to InfluxDB established!", qos=0)
+    client.subscribe(commands_to_influxdb)
+    client.subscribe(store_car_data_topic)
 
 def on_message(client, userdata, message):
     print("Message recieved!")
-    if(message.topic == drone_telemetry_topic):  #DRONE TELEMETRY
+    if(message.topic == commands_to_influxdb):  #DRONE TELEMETRY
         payload = json.loads(message.payload.decode('utf-8'))
         write_telemetry(payload)
 
@@ -29,7 +28,7 @@ def on_message(client, userdata, message):
         payload = json.loads(message.payload.decode('utf-8'))
         write_string(payload)
 
-    if(message.topic == take_picture_topic):
+    if(message.topic == store_car_data_topic):
         write_overtake(message.payload.decode())
 
 mqtt_client = mqtt.Client("InfluxDB")

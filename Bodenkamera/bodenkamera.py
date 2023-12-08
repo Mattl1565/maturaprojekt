@@ -6,8 +6,8 @@ broker_address = ip.useful_functions.get_ip_address()
 port = 1883  # Default MQTT port
 
 # Topic to which you want to publish the message
-topic31 = "Steuereinheit/commands_to_ground_camera"
-topic32 = "Steuereinheit/kennzeichen_foto"
+commands_to_ground_cam_topic = "Steuereinheit/commands_to_ground_camera"
+license_plate_topic = "Steuereinheit/kennzeichen_foto"
 topic42 = "Steuereinheit/take_pic"
 
 image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
@@ -16,16 +16,15 @@ image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Image
 
 # Callback function to handle connection
 def on_connect(client, userdata, flags, rc):
-    client.subscribe(topic31)
-    client.subscribe(topic42)
+    client.subscribe(commands_to_ground_cam_topic)
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
-    if (message.topic == topic42) or (message.topic == topic31):
+    if (message.topic == commands_to_ground_cam_topic):
         with open(image_path, "rb") as file:
             image_data = file.read()
-            client.publish(topic32, image_data, qos=1)
+            client.publish(license_plate_topic, image_data, qos=1)
 
 client = mqtt.Client("Bodenkamera")
 
