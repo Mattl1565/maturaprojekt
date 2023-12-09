@@ -89,10 +89,8 @@ def main():
                       title_format="Local Time : {0}")
 
 # 3 different buttons each with a different style and purpose
-    settings.add.button(title="Print Settings", action=printSettings,
-                        font_color=RED, background_color=WHITE)
-    settings.add.button(title="Publish Settings to MQTT", action=refreshSettings,
-                        font_color=RED, background_color=WHITE)
+    #settings.add.button(title="Print Settings", action=printSettings,
+    #                    font_color=RED, background_color=WHITE)
     #settings.add.button(title="Restore Defaults", action=settings.reset_value,
     #                    font_color=RED, background_color=WHITE)
     settings.add.button(title="Return To Main Menu",
@@ -132,6 +130,9 @@ def main():
 
     mainMenu.add.button(title="Controls", action=controls,
                     font_color=WHITE, background_color=BLACK)
+
+    mainMenu.add.button(title="Start", action=refreshSettings,
+                        font_color=RED, background_color=WHITE)
 
     #controls.set_controller()
 
