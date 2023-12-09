@@ -24,6 +24,8 @@ take_fake_video_input = False
 take_fake_picture_input = False
 gta_effects = False
 
+drone_connected = False
+
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883
@@ -79,14 +81,14 @@ def on_message(client, userdata, message):
         handle_car_leaving_street(message) #THEN we handle it
 
     if message.topic == drone_connected_topic: ##IF Drone connected to MQTT
-        tag_der_offenen_tuer()
+        global drone_connected
+        drone_connected = True
 
     if message.topic == licence_plate_string_topic: #IF we recieve the string of the licence plate
         handle_licence_plate_string(message) #THEN we handle it
 
     if message.topic == graphical_steuereinheit_topic:
-        handle_graphic_control(message, drone_height,drone_angle,overtake_detection,ground_cam_usage,direction_detection,speed_detection,store_drone_telemetry,
-                            store_criminal_offences, take_fake_video_input, take_fake_picture_input, gta_effects)
+        handle_graphic_control(message)
 
 
 def on_publish(client, userdata, mid):
@@ -107,7 +109,6 @@ def handle_telemetry(message):
     if(store_drone_telemetry):
         client.publish(commands_to_influxdb, message, qos=1)
         print(message.payload.decode())
-
 
 def handle_video(message):
     if(take_fake_video_input):   #FAKE VIDEO INPUT CAME IN SO WE START THE ANALYSIS
@@ -151,7 +152,7 @@ def handle_ground_camera(message):
         blended_image = cv2.addWeighted(image, alpha, gta_busted_image, 1 - alpha, 0)
         cv2.imshow("Nummernschild", blended_image)
         pygame.mixer.music.play()
-        cv2.waitKey(10000)
+        cv2.waitKey(7000)
         pygame.mixer.music.stop()
         cv2.destroyAllWindows()   #THEN we display it
         print("Officer, we recieved a pic!")
@@ -169,7 +170,7 @@ def handle_car_leaving_street(message):
         client.publish(commands_to_ground_camera_topic, "Picture this!", qos=1)
         print("RasPi should be taking a pic now!")
     if(store_criminal_offences):
-        client.publish(store_car_data_topic, message, qos=1)
+        client.publish(store_car_data_topic, message.payload, qos=1)
 
 
 def handle_licence_plate_string(message):
@@ -187,9 +188,22 @@ def play_busted(file_path):
     pygame.mixer.music.stop()
     pygame.quit()
 
-def handle_graphic_control(message, drone_height,drone_angle,overtake_detection,ground_cam_usage,direction_detection,speed_detection,store_drone_telemetry,
-                            store_criminal_offences, take_fake_video_input, take_fake_picture_input, gta_effects):
+def handle_graphic_control(message):
+
     print(message.payload.decode())
+
+    global ground_cam_usage
+    global drone_height
+    global drone_angle
+    global overtake_detection
+    global direction_detection
+    global speed_detection
+    global gta_effects
+    global take_fake_picture_input
+    global take_fake_video_input
+    global store_drone_telemetry
+    global store_criminal_offences
+
     payload = json.loads(message.payload.decode('utf-8'))
     drone_height = payload["drone_height"]
     drone_angle = payload["drone_angle"]
