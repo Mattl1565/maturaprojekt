@@ -1,6 +1,6 @@
 import json
 import threading
-
+import time
 import paho.mqtt.client as mqtt
 from ultralytics import YOLO
 from YOLOv8_detection.Detection_Overtakes.Car import Car
@@ -12,14 +12,15 @@ import cv2
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()
-port = 1884
+port = 1883
 
 video_stream_topic = "Steuereinheit/video_stream"
 commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
 take_picture_topic = "Steuereinheit/take_pic"
 
 
-def run_overtake_detection(video_path, model, file_index):
+def run_overtake_detection(client, video_path, model, drone_height, drone_angle, overtaking_detection, direction_detection, speed_detection, file_index):
+
     cap = cv2.VideoCapture(video_path)
     print(video_path)
     model.fuse()
@@ -34,6 +35,16 @@ def run_overtake_detection(video_path, model, file_index):
     VisibleCars = []
     VisibleCars_up = []
     VisibleCars_down = []
+
+    angle_in_radians = np.radians(drone_angle)
+
+    distance_covered = drone_height * np.tan(angle_in_radians)
+
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("drone_height: " + str(drone_height))
+    print("drone_angle: " + str(drone_angle))
+    print("distance_covered: " + str(distance_covered))
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
     # initialize the variables for the direction detection
     UP = 1
@@ -53,7 +64,6 @@ def run_overtake_detection(video_path, model, file_index):
     publish_flag = False
     # define a scaling factor
     scaling_factor = 1
-
     # Loop through the video frames
     while cap.isOpened():
         # Read a frame from the video
@@ -70,6 +80,8 @@ def run_overtake_detection(video_path, model, file_index):
             height, width = frame.shape[:2]
             imgsz = max(width, height)
             print(f'YOLOv8 imgsz: {imgsz}')
+
+            pixel_per_meter = width / distance_covered
 
             # Run YOLOv8 tracking on the frame, persisting tracks between frames
             results = model.track(source=frame, persist=True)
@@ -96,7 +108,8 @@ def run_overtake_detection(video_path, model, file_index):
                     car.setX(x)
                     y_arr = [1]
                     y_arr[0] = y
-                    car.setY(y_arr)
+                    car.setTime(current_time_ms)
+                    car.setY(y_arr, pixel_per_meter)
                 else:
                     x, y, w, h = box
                     x = x.numpy()
@@ -126,6 +139,8 @@ def run_overtake_detection(video_path, model, file_index):
 
             # Update VisibleCars list with visible cars
             VisibleCars = [car for car in AllCars if func.is_car_visible(car, track_ids)]
+
+
 
             # Check if a car changed direction
             # if (visible cars vorher < visible cars nachher) -> auto fährt nach unten
@@ -166,13 +181,16 @@ def run_overtake_detection(video_path, model, file_index):
             for car in VisibleCars_down:
                 print(str(car))
                 if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
-                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
+                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
+                    print("ERRGTRGEGEGEGREWERGEWGRGEWRG")
                     car.setBusted(True)
             print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
             for car in VisibleCars_up:
                 print(str(car))
-                if(car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False):
-                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=1)
+
+                if car.getOvertaking() == True and func.check_if_passed_line(car, line_start[1]) and car.getBusted() == False:
+                    client.publish(take_picture_topic, (overtakes_up + overtakes_down), qos=0)
+                    print("Gorbtchow")
                     car.setBusted(True)
             print("----------------------------------------------------------------")
             print("Overtakes_UP: " + str(overtakes_up))
@@ -201,22 +219,31 @@ def run_overtake_detection(video_path, model, file_index):
                 direction = func.get_direction_from_Dict(track_id, CarDict)
                 overtaking = func.get_overtaking(track_id, CarDict)
                 id = func.get_id(track_id, CarDict)
+                speed = func.get_speed(track_id, CarDict)
+
                 # Add the direction label at the bottom of the box
-                direction_label = f"Direction: {direction}"
-                cv2.putText(annotated_frame, direction_label, (int(x - (w / 2)), int(y + (h / 2) + 40)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                if(direction_detection):
+                    direction_label = f"Direction: {direction}"
+                    cv2.putText(annotated_frame, direction_label, (int(x - (w / 2)), int(y + (h / 2) + 40)),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                 # Add the direction label at the bottom of the box
-                overtaking_label = f"Overtaking: {overtaking}"
-                cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
-                            cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
+                if(overtaking_detection):
+                    overtaking_label = f"Overtaking: {overtaking}"
+                    cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
+                                cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
                 id_label = f"ID: {id}"
                 cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
                             cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
+                if(speed_detection):
+                    speed_label = f"Speed: {speed} km/h"
+                    cv2.putText(annotated_frame, speed_label, (int(x - (w / 2)), int(y + (h / 2)) - 20),
+                                cv2.FONT_ITALIC, 1.0, (153, 0, 255), 2)
 
-                cv2.putText(annotated_frame, "Overtakes_UP: " + str(overtakes_up), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                            1.0, (255, 0, 255), 2)
-                cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
+                if(overtaking_detection):
+                    cv2.putText(annotated_frame, "Overtakes_UP: " + str(overtakes_up), (10, 50), cv2.FONT_HERSHEY_SIMPLEX,
+                                1.0, (255, 0, 255), 2)
+                    cv2.putText(annotated_frame, "Overtakes_DOWN: " + str(overtakes_down), (10, 100),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 255), 2)
 
                 cv2.line(annotated_frame, line_start, line_end, (255, 255, 0), thickness= 5)
 
@@ -234,9 +261,24 @@ def run_overtake_detection(video_path, model, file_index):
     # Release the video capture object and close the display window
     cap.release()
 
-def overtaking_thread(video_file1):
+
+def overtaking_thread(client, video_file1, drone_height, drone_angle,overtaking_detection, direction_detection, speed_detection):
     model1 = YOLO('yolov8n.pt')
-    run_overtake_detection(video_file1, model1, 1)
+    run_overtake_detection(client, video_file1, model1, drone_height, drone_angle,overtaking_detection, direction_detection, speed_detection, 1)
+
+def mqtt_thread():
+    client = mqtt.Client("Overtake Detection AI", clean_session=True, userdata=None)
+
+    # Set the callback functions
+    client.on_connect = on_connect
+    client.on_message = on_message
+    client.on_publish = on_publish
+
+    # Connect to the MQTT broker
+    client.connect(broker_address, port, keepalive=120)
+
+    # Start the MQTT loop
+    client.loop_forever()
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
@@ -255,22 +297,35 @@ def on_message(client, userdata, message):
             if command == "check_for_overtake":
                 video_path = payload.get("video_path", 0)
                 print("Overtake Detection started!")
-                #START DETECTION
-                overtaking_thread_handler = threading.Thread(target=overtaking_thread(video_path))
-                overtaking_thread_handler.start()
+                drone_height = payload.get("height", 0)
+                drone_angle = payload.get("angle", 0)
+                overtaking_detection = payload.get("overtake_detection", 0)
+                direction_detection = payload.get("direction_detection", 0)
+                speed_detection = payload.get("speed_detection", 0)
+                overtake_thread = threading.Thread(target=overtaking_thread, args=(client, video_path, drone_height, drone_angle, overtaking_detection, direction_detection, speed_detection), daemon=True)
+                overtake_thread.start()
 
 def on_publish(client, userdata, mid):
-    print("Publishing!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 
-client = mqtt.Client("Overtake Detection AI")
 
-# Set the callback functions
-client.on_connect = on_connect
-client.on_message = on_message
-client.on_publish = on_publish
+# Start the MQTT thread
+mqtt_thread = threading.Thread(target=mqtt_thread, daemon=True)
+mqtt_thread.start()
 
-# Connect to the MQTT broker
-client.connect(broker_address, port, keepalive=120)
+# Wait for a moment to ensure the MQTT thread has connected
+time.sleep(2)
 
-# Loop to maintain the connection and handle messages
-client.loop_forever()
+# Keep the main thread alive
+try:
+    while True:
+        time.sleep(1)
+except KeyboardInterrupt:
+    pass
+finally:
+    print("Exiting program.")
+
