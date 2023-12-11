@@ -3,9 +3,9 @@ import time
 import cv2
 import paho.mqtt.client as mqtt
 import numpy as np
-from MATURAPROJEKT.maturaprojekt.Drohne.json_commands_for_drone import TelloCommands
-from MATURAPROJEKT.maturaprojekt.Steuereinheit.json_commands_for_ai import AICommands
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as us
+from Drohne.json_commands_for_drone import TelloCommands
+from Steuereinheit.json_commands_for_ai import AICommands
+import Utils.useful_functions as us
 import pygame
 from PIL import Image, ImageDraw, ImageFont
 

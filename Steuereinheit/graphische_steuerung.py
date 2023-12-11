@@ -7,7 +7,7 @@ import pygame
 import pygame_menu as pm
 import paho.mqtt.client as mqtt
 
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
+import Utils.useful_functions as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883

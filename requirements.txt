@@ -1,0 +1,9 @@
+opencv-python~=4.8.0.76
+paho-mqtt~=1.6.1
+djitellopy~=2.5.0
+matplotlib~=3.8.2
+pygame~=2.5.2
+numpy~=1.26.2
+Pillow~=10.1.0
+ultralytics~=8.0.220
+easyocr~=1.7.1
