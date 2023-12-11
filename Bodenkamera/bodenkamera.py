@@ -1,5 +1,5 @@
 import paho.mqtt.client as mqtt
-import Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
 # MQTT broker address and port
 
 broker_address = ip.useful_functions.get_ip_address()
@@ -10,8 +10,7 @@ commands_to_ground_cam_topic = "Steuereinheit/commands_to_ground_camera"
 license_plate_topic = "Steuereinheit/kennzeichen_foto"
 topic42 = "Steuereinheit/take_pic"
 
-image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
-
+image_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
 
 
 # Callback function to handle connection
