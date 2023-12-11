@@ -5,7 +5,7 @@ import cv2
 # Load a model
 model = YOLO("Model\\best.pt")
 
-img_path = 'C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Images\\Liscence_plate_testing.png'
+img_path = 'C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Images\\karim_busted.jpg'
 
 img = cv2.imread(img_path)
 
@@ -47,9 +47,6 @@ reader = easyocr.Reader(['en'])
 # extract text from the image
 result = reader.readtext(img)
 
-text, box, score = result[0]
+text, box, score = result[1]
 
 print(box)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
