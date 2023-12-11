@@ -10,6 +10,7 @@ import pygame
 from PIL import Image, ImageDraw, ImageFont
 
 video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+#video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
 video_writer = None
 
 drone_height = 0
