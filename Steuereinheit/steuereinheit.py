@@ -3,14 +3,14 @@ import time
 import cv2
 import paho.mqtt.client as mqtt
 import numpy as np
-from MATURAPROJEKT.maturaprojekt.Drohne.json_commands_for_drone import TelloCommands
-from MATURAPROJEKT.maturaprojekt.Steuereinheit.json_commands_for_ai import AICommands
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as us
+from Drohne.json_commands_for_drone import TelloCommands
+from Steuereinheit.json_commands_for_ai import AICommands
+import Utils.useful_functions as us
 import pygame
 from PIL import Image, ImageDraw, ImageFont
 
-video_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
-#video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\stream_from_drone.mp4"
+#video_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
 video_writer = None
 
 drone_height = 0
@@ -48,7 +48,8 @@ drone_connected_topic = "Steuereinheit/drone_on"
 licence_plate_string_topic = "Steuereinheit/kennzeichen_string"
 graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
 store_car_data_topic = "Steuereinheit/store_car_data"
-
+drone_topic = "Steuereinheit/drone_control"
+START_topic = "Steuereinheit/start"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected to MQTT broker with result code " + str(rc) + "\n")
@@ -60,14 +61,19 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe(drone_connected_topic)
     client.subscribe(licence_plate_string_topic)
     client.subscribe(graphical_steuereinheit_topic)
-    #client.publish(graphical_steuereinheit_topic, "Start", qos=1)
-    #client.publish(car_left_topic, "Take Pic!!!", qos=0)
+    client.subscribe(drone_topic)
+    client.subscribe(START_topic)
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
+    if message.topic == START_topic:
+        client.publish(commands_to_overtake_ai_topic,AICommands.check_for_overtake(video_path, drone_height, drone_angle, overtake_detection,direction_detection, speed_detection), qos=0)
 
     if message.topic == drone_telemetry_topic: #IF we recieve telemetry from drone
         handle_telemetry(message) #THEN we handle it
+
+    if message.topic == drone_topic: #IF DRONE GETS A COMMAND FROM GRAPHICAL MENU
+        handle_graphical_publish(message) #THEN we handle it
 
     if message.topic == drone_stream_topic: #IF we recieve video from drone
         handle_video(message) #THEN we handle it
@@ -106,6 +112,22 @@ def tag_der_offenen_tuer():
     client.publish(commands_to_drone_topic, TelloCommands.move_back(100))
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry())
     client.publish(commands_to_drone_topic, TelloCommands.land())
+
+def go_to_position():
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(), qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.takeoff(),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.move_up(drone_height * 100),qos=1)
+    #client.publish(commands_to_drone_topic, TelloCommands.move_to_angle(drone_angle),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.move_forward(100),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(),qos=1)
+
+def land():
+    client.publish(commands_to_drone_topic, TelloCommands.move_back(100),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(),qos=1)
+    client.publish(commands_to_drone_topic, TelloCommands.land(),qos=1)
+
 def handle_telemetry(message):
     if(store_drone_telemetry):
         client.publish(commands_to_influxdb, message, qos=1)
@@ -176,7 +198,6 @@ def handle_car_leaving_street(message):
     if(store_criminal_offences):
         client.publish(store_car_data_topic, message.payload, qos=1)
 
-
 def handle_licence_plate_string(message):
     print("License Plate String: " + message.payload.decode())
 
@@ -220,8 +241,13 @@ def handle_graphic_control(message):
     take_fake_video_input = payload["fake_vid_input"]
     take_fake_picture_input = payload["fake_pic_input"]
     gta_effects = payload["gta_effects"]
-    client.publish(commands_to_overtake_ai_topic,AICommands.check_for_overtake(video_path, drone_height, drone_angle, overtake_detection,
-                                                direction_detection, speed_detection), qos=0)
+
+
+def handle_graphical_publish(message):
+    if message.payload.decode() == "POS":
+        go_to_position()
+    elif message.payload.decode() == "LAND":
+        land()
 
 client = mqtt.Client("Steuereinheit")
 

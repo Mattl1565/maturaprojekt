@@ -7,11 +7,13 @@ import pygame
 import pygame_menu as pm
 import paho.mqtt.client as mqtt
 
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
+import Utils.useful_functions as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883
 graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
+START_topic = "Steuereinheit/start"
+drone_topic = "Steuereinheit/drone_control"
 
 pygame.init()
 
@@ -28,25 +30,24 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
 def main():
-
-    graphics = [("Low", "low"),
-                ("Medium", "medium"),
-                ("High", "high"),
-                ("Ultra High", "ultra high")]
-
     def printSettings():
         print("\n\n")
-        # getting the data using "get_input_data" method of the Menu class
         settingsData = settings.get_input_data()
-
         for key in settingsData.keys():
             print(f"{key}\t:\t{settingsData[key]}")
 
     def refreshSettings():
-        print("funny mqtt")
         settingsData = settings.get_input_data()
         jsonMessage = json.dumps(settingsData)
         client.publish(graphical_steuereinheit_topic, jsonMessage, qos=1)
+
+    def publishLand():
+        client.publish(drone_topic, "LAND", qos=1)
+    def publishStart():
+        client.publish(drone_topic, "POS", qos=1)
+
+    def start():
+        client.publish(START_topic, "START", qos=1)
 
     settings = pm.Menu(title="Einstellungen",
                        width=WIDTH,
@@ -68,34 +69,31 @@ def main():
     settings.add.toggle_switch(
         title="Overtake Detection", default=True, toggleswitch_id="overtake_detection")
     settings.add.toggle_switch(
-        title="Ground Camera Usage", default=False, toggleswitch_id="ground_cam_usage")
+        title="Ground Camera Usage", default=True, toggleswitch_id="ground_cam_usage")
     settings.add.toggle_switch(
-        title="Direction Detection", default=False, toggleswitch_id="direction_detection")
+        title="Direction Detection", default=True, toggleswitch_id="direction_detection")
     settings.add.toggle_switch(
         title="Speed Detection", default=False, toggleswitch_id="speed_detection")
     settings.add.toggle_switch(
-        title="Store Drone Telemetry", default=False, toggleswitch_id="store_drone_telemetry")
+        title="Store Drone Telemetry", default=True, toggleswitch_id="store_drone_telemetry")
     settings.add.toggle_switch(
-        title="Store Criminal Offences", default=False, toggleswitch_id="store_criminal_offences")
+        title="Store Criminal Offences", default=True, toggleswitch_id="store_criminal_offences")
     settings.add.toggle_switch(
-        title="Take Fake Video Input", default=False, toggleswitch_id="fake_vid_input")
+        title="Take Fake Video Input", default=True, toggleswitch_id="fake_vid_input")
     settings.add.toggle_switch(
-        title="Take Fake Picture Input", default=False, toggleswitch_id="fake_pic_input")
+        title="Take Fake Picture Input", default=True, toggleswitch_id="fake_pic_input")
     settings.add.toggle_switch(
-        title="GTA Effects", default=False, toggleswitch_id="gta_effects")
+        title="GTA Effects", default=True, toggleswitch_id="gta_effects")
+
+    settings.add.button(title="Save Settings", action=refreshSettings,
+                        font_color=RED, background_color=WHITE)
 
     # clock that displays the current date and time
     settings.add.clock(clock_format="%d-%m-%y %H:%M:%S",
                       title_format="Local Time : {0}")
 
-# 3 different buttons each with a different style and purpose
-    #settings.add.button(title="Print Settings", action=printSettings,
-    #                    font_color=RED, background_color=WHITE)
-    #settings.add.button(title="Restore Defaults", action=settings.reset_value,
-    #                    font_color=RED, background_color=WHITE)
     settings.add.button(title="Return To Main Menu",
                         action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
-
 
     controls = pm.Menu(title="Controls",
                    width=WIDTH,
@@ -106,11 +104,14 @@ def main():
     controls._theme.widget_font_color = BLACK
     controls._theme.widget_alignment = pm.locals.ALIGN_LEFT
 
-    controls.add.toggle_switch(
-        title="Go To Position", default=False, toggleswitch_id="take_off")
 
-    controls.add.toggle_switch(
-        title="Land", default=False, toggleswitch_id="land")
+
+    controls.add.button(
+        title="Go To Position", action=publishStart,align=pm.locals.ALIGN_CENTER, font_color=BLACK, background_color=WHITE)
+
+    controls.add.button(title="Land", action=publishLand,
+            font_color=BLACK, background_color=WHITE, align=pm.locals.ALIGN_CENTER)
+
 
     controls.add.button(title="Return To Main Menu",
                         action=pm.events.BACK, align=pm.locals.ALIGN_CENTER)
@@ -131,10 +132,7 @@ def main():
     mainMenu.add.button(title="Controls", action=controls,
                     font_color=WHITE, background_color=BLACK)
 
-    mainMenu.add.button(title="Start", action=refreshSettings,
-                        font_color=RED, background_color=WHITE)
-
-    #controls.set_controller()
+    mainMenu.add.button(title="Start", action=start, font_color=WHITE, background_color=BLACK)
 
     # An empty label that is used to add a seperation between the two buttons
     mainMenu.add.label(title="")
@@ -142,7 +140,6 @@ def main():
     # Exit button that is used to terminate the program
     mainMenu.add.button(title="Exit", action=pm.events.EXIT,
                     font_color=WHITE, background_color=RED)
-
 
     mainMenu.mainloop(screen)
 
@@ -170,11 +167,7 @@ def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
 
 def on_publish(client, userdata, mid):
-    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-    print("Publishing!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print("Graphische Steuereinheit published message with id " + str(mid) + "\n")
 
 
 # Start the MQTT thread
