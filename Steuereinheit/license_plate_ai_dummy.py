@@ -1,6 +1,6 @@
 import json
 import paho.mqtt.client as mqtt
-import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
 
 # MQTT broker address and port
 broker_address = ip.useful_functions.get_ip_address()

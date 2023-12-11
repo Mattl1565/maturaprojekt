@@ -5,7 +5,7 @@ import paho.mqtt.client as mqtt
 import numpy as np
 from MATURAPROJEKT.maturaprojekt.Drohne.json_commands_for_drone import TelloCommands
 from MATURAPROJEKT.maturaprojekt.Steuereinheit.json_commands_for_ai import AICommands
-import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as us
 import pygame
 from PIL import Image, ImageDraw, ImageFont
 
@@ -28,7 +28,7 @@ gta_effects = False
 drone_connected = False
 
 # MQTT broker address and port
-broker_address = ip.useful_functions.get_ip_address()
+broker_address = us.useful_functions.get_ip_address()
 port = 1883
 #MQTT topics
 
@@ -138,13 +138,14 @@ def handle_video_stop(message):
 def handle_ground_camera(message):
     image_data = np.frombuffer(message.payload, dtype=np.uint8)
     image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-    file_path_mate = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Steuereinheit\\Income\\kennzeichen.jpg"
+    file_path_mate = ".\\Income\\kennzeichen.jpg"
     cv2.imwrite(file_path_mate, image)
     if(gta_effects):
+        client.publish(commands_to_licence_plate_ai_topic, us.useful_functions.publish_pic_to_mqtt(file_path_mate),qos=1)
         pygame.init()
         pygame.mixer.init()
-        pygame.mixer.music.load("C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Steuereinheit\\GTA_Stuff\\busted_sound_effect.wav")
-        font_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Steuereinheit\\GTA_Stuff\\gta5.ttf"
+        pygame.mixer.music.load(".\\GTA_Stuff\\busted_sound_effect.wav")
+        font_path = ".\\GTA_Stuff\\gta5.ttf"
         text = "Busted"
         text_color = (255,255,255)
         text_image = gta_busted_effect(text, font_path, 72, text_color)
@@ -158,17 +159,12 @@ def handle_ground_camera(message):
         pygame.mixer.music.stop()
         cv2.destroyAllWindows()   #THEN we display it
         print("Officer, we recieved a pic!")
-        with open(file_path_mate, "rb") as file:
-            image_data = file.read()
-            client.publish(commands_to_licence_plate_ai_topic, image_data, qos=1)
     else:
+        client.publish(commands_to_licence_plate_ai_topic, us.useful_functions.publish_pic_to_mqtt(file_path_mate), qos=1)
         cv2.imshow("Nummernschild", image)
         cv2.waitKey(10000)
         cv2.destroyAllWindows()  # THEN we display it
         print("Officer, we recieved a pic!")
-        with open(file_path_mate, "rb") as file:
-            image_data = file.read()
-            client.publish(commands_to_licence_plate_ai_topic, image_data, qos=1)
 
 def handle_car_leaving_street(message):
     print(message.payload.decode())

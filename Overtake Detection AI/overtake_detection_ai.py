@@ -7,7 +7,7 @@ from MATURAPROJEKT.maturaprojekt.YOLOv8_detection.Detection_Overtakes.Car import
 import MATURAPROJEKT.maturaprojekt.YOLOv8_detection.Detection_Overtakes.Functions as func
 from collections import defaultdict
 import numpy as np
-import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
 import cv2
 
 # MQTT broker address and port
