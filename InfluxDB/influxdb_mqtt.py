@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import json
 from InfluxDB.functions import write_telemetry, write_overtake, write_string
-import Utils.find_ipv4_adress as ip
+import Utils.useful_functions as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 broker_port = 1884
