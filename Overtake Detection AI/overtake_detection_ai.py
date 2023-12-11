@@ -3,11 +3,11 @@ import threading
 import time
 import paho.mqtt.client as mqtt
 from ultralytics import YOLO
-from YOLOv8_detection.Detection_Overtakes.Car import Car
-import YOLOv8_detection.Detection_Overtakes.Functions as func
+from MATURAPROJEKT.maturaprojekt.YOLOv8_detection.Detection_Overtakes.Car import Car
+import MATURAPROJEKT.maturaprojekt.YOLOv8_detection.Detection_Overtakes.Functions as func
 from collections import defaultdict
 import numpy as np
-import Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
 import cv2
 
 # MQTT broker address and port
