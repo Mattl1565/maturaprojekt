@@ -3,7 +3,7 @@ import numpy as np
 from ultralytics import YOLO
 import cv2
 import paho.mqtt.client as mqtt
-import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883

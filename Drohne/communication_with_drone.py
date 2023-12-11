@@ -3,7 +3,7 @@ import cv2
 from djitellopy import Tello
 import paho.mqtt.client as mqtt
 import json
-import MATURAPROJEKT.maturaprojekt.Utils.find_ipv4_adress as ip
+import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
 
 #tello = Tello()
 #tello.connect()
