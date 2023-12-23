@@ -3,7 +3,7 @@ import numpy as np
 from ultralytics import YOLO
 import cv2
 import paho.mqtt.client as mqtt
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
+import Utils.useful_functions as ip
 
 broker_address = ip.useful_functions.get_ip_address()
 port = 1883
@@ -66,7 +66,7 @@ def on_message(client, userdata, message):
 def on_publish(client, userdata, mid):
     print("Publishing!")
 
-client = mqtt.Client("License Plate Detection AI")
+client = mqtt.Client("LicensePlateDetection")
 
 client.on_connect = on_connect
 client.on_message = on_message

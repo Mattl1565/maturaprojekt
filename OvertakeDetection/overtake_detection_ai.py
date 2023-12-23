@@ -27,8 +27,8 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
     # Store the track history
     track_history = defaultdict(lambda: [])
 
-    line_start = (400, 900)
-    line_end = (1600, 900)
+    line_start = (000, 900)
+    line_end = (2000, 900)
     # initialize the lists for the cars
     CarDict = {}
     AllCars = []
@@ -267,7 +267,7 @@ def overtaking_thread(client, video_file1, drone_height, drone_angle,overtaking_
     run_overtake_detection(client, video_file1, model1, drone_height, drone_angle,overtaking_detection, direction_detection, speed_detection, 1)
 
 def mqtt_thread():
-    client = mqtt.Client("Overtake Detection AI", clean_session=True, userdata=None)
+    client = mqtt.Client("OvertakeDetection", clean_session=True, userdata=None)
 
     # Set the callback functions
     client.on_connect = on_connect

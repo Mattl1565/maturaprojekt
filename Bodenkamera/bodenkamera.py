@@ -1,8 +1,9 @@
+import sys
 import paho.mqtt.client as mqtt
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
-# MQTT broker address and port
+from Utils.useful_functions import get_ip_address
 
-broker_address = ip.useful_functions.get_ip_address()
+# MQTT broker address and port
+broker_address = get_ip_address()
 port = 1883  # Default MQTT port
 
 # Topic to which you want to publish the message
@@ -12,6 +13,12 @@ topic42 = "Steuereinheit/take_pic"
 
 image_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
 
+# Check if the laptop IP address is provided as a command-line argument
+if len(sys.argv) < 2:
+    print("Please provide the laptop IP address as a command-line argument.")
+    sys.exit(1)
+
+laptop_ip_address = sys.argv[1]
 
 # Callback function to handle connection
 def on_connect(client, userdata, flags, rc):
@@ -20,7 +27,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     print(f"Received message on topic {message.topic}")
-    if (message.topic == commands_to_ground_cam_topic):
+    if message.topic == commands_to_ground_cam_topic:
         with open(image_path, "rb") as file:
             image_data = file.read()
             client.publish(license_plate_topic, image_data, qos=1)
@@ -40,6 +47,5 @@ client.loop_start()
 # Example: Wait for user input to exit the script
 input("Press Enter to exit...\n")
 
-
-#client.loop_stop()
-#client.disconnect()
+# client.loop_stop()
+# client.disconnect()

@@ -10,7 +10,7 @@ import pygame
 from PIL import Image, ImageDraw, ImageFont
 
 #video_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
-video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\eval_1.mp4"
 video_writer = None
 
 drone_height = 0
@@ -30,6 +30,8 @@ drone_connected = False
 # MQTT broker address and port
 broker_address = us.useful_functions.get_ip_address()
 port = 1883
+
+print(broker_address)
 #MQTT topics
 
 
@@ -158,10 +160,13 @@ def handle_video_stop(message):
         video_writer.release()
 
 def handle_ground_camera(message):
-    image_data = np.frombuffer(message.payload, dtype=np.uint8)
-    image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    image_data = np.frombuffer(message.payload.decode('utf-8'), dtype=np.uint8)
     file_path_mate = ".\\Income\\kennzeichen.jpg"
-    cv2.imwrite(file_path_mate, image)
+    image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    image = cv2.imwrite(file_path_mate, image_data)
+    cv2.imshow(image)
+    #image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    #cv2.imwrite(file_path_mate, image)
     if(gta_effects):
         client.publish(commands_to_licence_plate_ai_topic, us.useful_functions.publish_pic_to_mqtt(file_path_mate),qos=1)
         pygame.init()
@@ -192,9 +197,12 @@ def handle_car_leaving_street(message):
     print(message.payload.decode())
     print("Ground Cam Usage:")
     print(ground_cam_usage)
-    if(ground_cam_usage):
-        client.publish(commands_to_ground_camera_topic, "Picture this!", qos=1)
+    if(ground_cam_usage == True):
+        client.publish(commands_to_ground_camera_topic, 1, qos=1)
         print("RasPi should be taking a pic now!")
+    if(ground_cam_usage == False):
+        client.publish(commands_to_ground_camera_topic, 0, qos=1)
+        print("Should be sending fake pic now!")
     if(store_criminal_offences):
         client.publish(store_car_data_topic, message.payload, qos=1)
 
