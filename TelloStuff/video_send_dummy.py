@@ -13,7 +13,7 @@ topic22 = "Steuereinheit/drone_telemetry"
 topic23 = "Steuereinheit/video_stream"
 
 # Path to your video file
-video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\test3.mp4"
+video_path = "/Resources/Videos/test3.mp4"
 
 
 # Chunk size in bytes (adjust according to your requirements)
