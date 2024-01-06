@@ -10,14 +10,14 @@ commands_to_ground_cam_topic = "Steuereinheit/commands_to_ground_camera"
 license_plate_topic = "Steuereinheit/kennzeichen_foto"
 topic42 = "Steuereinheit/take_pic"
 
-image_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Images\\karim_busted.jpg"
+image_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\TelloStuff\\picture.png"
 
 # Check if the laptop IP address is provided as a command-line argument
-if len(sys.argv) < 2:
-    print("Please provide the laptop IP address as a command-line argument.")
-    sys.exit(1)
+# if len(sys.argv) < 2:
+#     print("Please provide the laptop IP address as a command-line argument.")
+#     sys.exit(1)
 
-laptop_ip_address = sys.argv[1]
+# laptop_ip_address = sys.argv[1]
 
 # Callback function to handle connection
 def on_connect(client, userdata, flags, rc):
@@ -40,11 +40,4 @@ client.on_message = on_message
 # Connect to the broker
 client.connect(broker_address, port, 60)
 
-# Loop to maintain the connection and handle messages
-client.loop_start()
-
-# Example: Wait for user input to exit the script
-input("Press Enter to exit...\n")
-
-# client.loop_stop()
-# client.disconnect()
+client.loop_forever()

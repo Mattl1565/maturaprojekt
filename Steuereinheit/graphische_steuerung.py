@@ -7,9 +7,7 @@ import pygame
 import pygame_menu as pm
 import paho.mqtt.client as mqtt
 
-import Utils.useful_functions as ip
-
-broker_address = ip.useful_functions.get_ip_address()
+broker_address = "localhost"
 port = 1883
 graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
 START_topic = "Steuereinheit/start"
@@ -75,13 +73,7 @@ def main():
     settings.add.toggle_switch(
         title="Speed Detection", default=False, toggleswitch_id="speed_detection")
     settings.add.toggle_switch(
-        title="Store Drone Telemetry", default=True, toggleswitch_id="store_drone_telemetry")
-    settings.add.toggle_switch(
-        title="Store Criminal Offences", default=True, toggleswitch_id="store_criminal_offences")
-    settings.add.toggle_switch(
         title="Take Fake Video Input", default=True, toggleswitch_id="fake_vid_input")
-    settings.add.toggle_switch(
-        title="Take Fake Picture Input", default=True, toggleswitch_id="fake_pic_input")
     settings.add.toggle_switch(
         title="GTA Effects", default=True, toggleswitch_id="gta_effects")
 

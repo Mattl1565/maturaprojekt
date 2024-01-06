@@ -1,3 +1,5 @@
+import json
+
 import easyocr
 import numpy as np
 from ultralytics import YOLO
@@ -5,7 +7,7 @@ import cv2
 import paho.mqtt.client as mqtt
 import Utils.useful_functions as ip
 
-broker_address = ip.useful_functions.get_ip_address()
+broker_address = "localhost"
 port = 1883
 licence_plate_string_topic = "Steuereinheit/kennzeichen_string"
 commands_to_licence_plate_ai_topic = "Steuereinheit/commands_to_licence_plate_ai"
@@ -51,7 +53,8 @@ def read_license_plate(payload):
     result = reader.readtext(img)
     text, box, score = result[1]
     print(box)
-    client.publish(licence_plate_string_topic, box, qos=1)
+    jsonMessage = json.dumps({"license_plate": box})
+    client.publish(licence_plate_string_topic, jsonMessage, qos=1)
 
 
 def on_connect(client, userdata, flags, rc):

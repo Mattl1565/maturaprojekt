@@ -7,7 +7,6 @@ from YOLOv8_detection.Detection_Overtakes.Car import Car
 import YOLOv8_detection.Detection_Overtakes.Functions as func
 from collections import defaultdict
 import numpy as np
-import Utils.useful_functions as ip
 import cv2
 
 # MQTT broker address and port
@@ -27,8 +26,8 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
     # Store the track history
     track_history = defaultdict(lambda: [])
 
-    line_start = (000, 900)
-    line_end = (2000, 900)
+    line_start = (50, 800)
+    line_end = (1600, 800)
     # initialize the lists for the cars
     CarDict = {}
     AllCars = []
@@ -222,6 +221,10 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
                 speed = func.get_speed(track_id, CarDict)
 
                 # Add the direction label at the bottom of the box
+                id_label = f"ID: {id}"
+                cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
+                            cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
+
                 if(direction_detection):
                     direction_label = f"Direction: {direction}"
                     cv2.putText(annotated_frame, direction_label, (int(x - (w / 2)), int(y + (h / 2) + 40)),
@@ -231,9 +234,6 @@ def run_overtake_detection(client, video_path, model, drone_height, drone_angle,
                     overtaking_label = f"Overtaking: {overtaking}"
                     cv2.putText(annotated_frame, overtaking_label, (int(x - (w / 2)), int(y + (h / 2) + 60)),
                                 cv2.FONT_ITALIC, 0.7, (255, 0, 0), 2)
-                id_label = f"ID: {id}"
-                cv2.putText(annotated_frame, id_label, (int(x - (w / 2)), int(y + (h / 2) + 20)),
-                            cv2.FONT_ITALIC, 1.0, (153, 255, 255), 2)
                 if(speed_detection):
                     speed_label = f"Speed: {speed} km/h"
                     cv2.putText(annotated_frame, speed_label, (int(x - (w / 2)), int(y + (h / 2)) - 20),
