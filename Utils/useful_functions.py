@@ -1,6 +1,5 @@
 import socket
 
-
 class useful_functions:
     @staticmethod
     def get_ip_address():

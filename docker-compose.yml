@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt
+    ports:
+      - "1883:1883" #default mqtt port
+      - "9001:9001" #default mqtt port for websockets
+    volumes:
+      - ./mqtt/config:/mosquitto/config:rw
+      - ./mqtt/data:/mosquitto/data:rw
+      - ./mqtt/log:/mosquitto/log:rw
+    networks:
+      mqtt6:
+        ipv4_address: 192.168.93.15
+
+  influxdb:
+    image: influxdb:latest
+    volumes:
+      - influxdb-storage:/var/lib/influxdb2:rw
+    env_file:
+      - .env
+    entrypoint: ["./entrypoint.sh"]
+    restart: on-failure:10
+    ports:
+      - ${DOCKER_INFLUXDB_INIT_PORT}:8086
+    networks:
+      mqtt6:
+        ipv4_address: 192.168.93.16
+
+  telegraf:
+    image: telegraf:latest
+    volumes:
+      - ${TELEGRAF_CFG_PATH}:/etc/telegraf/telegraf.conf:rw
+    env_file:
+      - .env
+    depends_on:
+      - influxdb
+      - mqtt
+    networks:
+      - mqtt6
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    volumes:
+      - grafana-storage:/var/lib/grafana:rw
+    depends_on:
+      - influxdb
+    ports:
+      - ${GRAFANA_PORT}:3000
+    networks:
+      - mqtt6
+
+volumes:
+  grafana-storage:
+  influxdb-storage:
+
+networks:
+  mqtt6:
+    ipam:
+      driver: default
+      config:
+        - subnet: "192.168.93.0/24"
+#        - gateway: "192.168.92.1"

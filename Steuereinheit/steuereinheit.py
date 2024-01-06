@@ -9,8 +9,7 @@ import Utils.useful_functions as us
 import pygame
 from PIL import Image, ImageDraw, ImageFont
 
-#video_path = "C:\\Users\\karim\\Documents\\Schule\\MaturaProjekt\\MATURAPROJEKT\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
-video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Resources\\Videos\\besteVideoGlaubstDuNichtDiese.mp4"
+video_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\besteVideo.mp4"
 video_writer = None
 
 drone_height = 0
@@ -19,25 +18,20 @@ ground_cam_usage = False
 overtake_detection = False
 direction_detection = False
 speed_detection = False
-store_drone_telemetry = False
-store_criminal_offences = False
 take_fake_video_input = False
-take_fake_picture_input = False
 gta_effects = False
 
 drone_connected = False
 
 # MQTT broker address and port
-broker_address = us.useful_functions.get_ip_address()
+broker_address = "localhost"
 port = 1883
-#MQTT topics
 
 
 commands_to_drone_topic = "Steuereinheit/commands_to_drone"
 commands_to_ground_camera_topic = "Steuereinheit/commands_to_ground_camera"
 commands_to_overtake_ai_topic = "Steuereinheit/commands_to_overtake_ai"
 commands_to_licence_plate_ai_topic = "Steuereinheit/commands_to_licence_plate_ai"
-commands_to_influxdb = "Steuereinheit/commands_to_influxdb"
 
 drone_telemetry_topic = "Steuereinheit/drone_telemetry"
 drone_stream_topic = "Steuereinheit/video_stream"
@@ -47,7 +41,6 @@ car_left_topic = "Steuereinheit/take_pic"
 drone_connected_topic = "Steuereinheit/drone_on"
 licence_plate_string_topic = "Steuereinheit/kennzeichen_string"
 graphical_steuereinheit_topic = "Steuereinheit/graphic_control"
-store_car_data_topic = "Steuereinheit/store_car_data"
 drone_topic = "Steuereinheit/drone_control"
 START_topic = "Steuereinheit/start"
 
@@ -70,7 +63,7 @@ def on_message(client, userdata, message):
         client.publish(commands_to_overtake_ai_topic,AICommands.check_for_overtake(video_path, drone_height, drone_angle, overtake_detection,direction_detection, speed_detection), qos=0)
 
     if message.topic == drone_telemetry_topic: #IF we recieve telemetry from drone
-        handle_telemetry(message) #THEN we handle it
+        print("Telegraf taking care of the values!")
 
     if message.topic == drone_topic: #IF DRONE GETS A COMMAND FROM GRAPHICAL MENU
         handle_graphical_publish(message) #THEN we handle it
@@ -128,10 +121,16 @@ def land():
     client.publish(commands_to_drone_topic, TelloCommands.get_telemetry(),qos=1)
     client.publish(commands_to_drone_topic, TelloCommands.land(),qos=1)
 
-def handle_telemetry(message):
-    if(store_drone_telemetry):
-        client.publish(commands_to_influxdb, message, qos=1)
-        print(message.payload.decode())
+def print_drone_settings():
+    print(f"drone_height: {drone_height}")
+    print(f"drone_angle: {drone_angle}")
+    print(f"ground_cam_usage: {ground_cam_usage}")
+    print(f"overtake_detection: {overtake_detection}")
+    print(f"direction_detection: {direction_detection}")
+    print(f"speed_detection: {speed_detection}")
+    print(f"take_fake_video_input: {take_fake_video_input}")
+    print(f"gta_effects: {gta_effects}")
+    print(f"drone_connected: {drone_connected}")
 
 def handle_video(message):
     if(take_fake_video_input):   #FAKE VIDEO INPUT CAME IN SO WE START THE ANALYSIS
@@ -158,16 +157,18 @@ def handle_video_stop(message):
         video_writer.release()
 
 def handle_ground_camera(message):
-    image_data = np.frombuffer(message.payload, dtype=np.uint8)
-    image = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
-    file_path_mate = ".\\Income\\kennzeichen.jpg"
-    cv2.imwrite(file_path_mate, image)
+    print_drone_settings()
+    image_data = np.frombuffer(message.payload, np.uint8)
+    file_path_mate = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\Income\\kennzeichen.jpg"
+    image_data = cv2.imdecode(image_data, cv2.IMREAD_COLOR)
+    cv2.imwrite(file_path_mate, image_data)
+    image = cv2.imread(file_path_mate)
     if(gta_effects):
         client.publish(commands_to_licence_plate_ai_topic, us.useful_functions.publish_pic_to_mqtt(file_path_mate),qos=1)
         pygame.init()
         pygame.mixer.init()
-        pygame.mixer.music.load(".\\GTA_Stuff\\busted_sound_effect.wav")
-        font_path = ".\\GTA_Stuff\\gta5.ttf"
+        pygame.mixer.music.load("C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\GTA_Stuff\\busted_sound_effect.wav")
+        font_path = "C:\\Users\\matth\\PycharmProjects\\maturaprojekt\\Steuereinheit\\GTA_Stuff\\gta5.ttf"
         text = "Busted"
         text_color = (255,255,255)
         text_image = gta_busted_effect(text, font_path, 72, text_color)
@@ -190,13 +191,12 @@ def handle_ground_camera(message):
 
 def handle_car_leaving_street(message):
     print(message.payload.decode())
-    print("Ground Cam Usage:")
-    print(ground_cam_usage)
-    if(ground_cam_usage):
-        client.publish(commands_to_ground_camera_topic, "Picture this!", qos=1)
+    if(ground_cam_usage == True):
+        client.publish(commands_to_ground_camera_topic, 1, qos=1)
         print("RasPi should be taking a pic now!")
-    if(store_criminal_offences):
-        client.publish(store_car_data_topic, message.payload, qos=1)
+    if(ground_cam_usage == False):
+        client.publish(commands_to_ground_camera_topic, 0, qos=1)
+        print("Should be sending fake pic now!")
 
 def handle_licence_plate_string(message):
     print("License Plate String: " + message.payload.decode())
@@ -224,10 +224,7 @@ def handle_graphic_control(message):
     global direction_detection
     global speed_detection
     global gta_effects
-    global take_fake_picture_input
     global take_fake_video_input
-    global store_drone_telemetry
-    global store_criminal_offences
 
     payload = json.loads(message.payload.decode('utf-8'))
     drone_height = payload["drone_height"]
@@ -236,12 +233,8 @@ def handle_graphic_control(message):
     ground_cam_usage = payload["ground_cam_usage"]
     direction_detection = payload["direction_detection"]
     speed_detection = payload["speed_detection"]
-    store_drone_telemetry = payload["store_drone_telemetry"]
-    store_criminal_offences = payload["store_criminal_offences"]
     take_fake_video_input = payload["fake_vid_input"]
-    take_fake_picture_input = payload["fake_pic_input"]
     gta_effects = payload["gta_effects"]
-
 
 def handle_graphical_publish(message):
     if message.payload.decode() == "POS":
