@@ -11,7 +11,7 @@ import Utils.useful_functions as ip
 import cv2
 
 # MQTT broker address and port
-broker_address = ip.useful_functions.get_ip_address()
+broker_address = "localhost"
 port = 1883
 
 video_stream_topic = "Steuereinheit/video_stream"

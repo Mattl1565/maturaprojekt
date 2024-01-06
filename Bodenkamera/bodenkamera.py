@@ -1,9 +1,8 @@
 import sys
 import paho.mqtt.client as mqtt
-from Utils.useful_functions import get_ip_address
 
 # MQTT broker address and port
-broker_address = get_ip_address()
+broker_address = "localhost"
 port = 1883  # Default MQTT port
 
 # Topic to which you want to publish the message

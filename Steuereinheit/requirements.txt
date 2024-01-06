@@ -1,6 +1,0 @@
-opencv-python~=4.8.1.78
-paho-mqtt~=1.6.1
-djitellopy~=2.5.0
-pygame~=2.5.2
-numpy~=1.26.2
-Pillow~=10.1.0

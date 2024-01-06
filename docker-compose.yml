@@ -52,15 +52,6 @@ services:
     networks:
       - mqtt6
 
-  steuereinheit:
-    build:
-      context: ./Steuereinheit
-      dockerfile: Dockerfile
-    depends_on:
-      - mqtt
-    networks:
-      - mqtt6
-
 volumes:
   grafana-storage:
   influxdb-storage:
