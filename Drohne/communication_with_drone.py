@@ -3,18 +3,17 @@ import cv2
 from djitellopy import Tello
 import paho.mqtt.client as mqtt
 import json
-import MATURAPROJEKT.maturaprojekt.Utils.useful_functions as ip
 
-#tello = Tello()
-#tello.connect()
+tello = Tello()
+tello.connect()
 
-#tello.streamon()
+# tello.streamon()
 #frame_read = tello.get_frame_read()
 
 connected = False
 
-broker_address = ip.useful_functions.get_ip_address()
-broker_port = 1884
+broker_address = "localhost"
+broker_port = 1883
 
 video_stream_topic = "Steuereinheit/video_stream"
 stream_off_topic = "Steuereinheit/stream_off"
